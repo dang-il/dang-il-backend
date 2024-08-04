@@ -34,15 +34,6 @@ class SessionColl(BaseModel):
     identifier: str
     created_at: Union[datetime, str]
 
-# 사용자 공간 컬렉션    
-class UserSpaceColl(BaseModel):
-    """
-    1. 유저 소셜로그인 식별자
-    2. 고민좀 해야함
-    """
-    id: str = Field(default_factory=str, alias="_id")
-    space: List[Tuple[str]]
-
 # 사용자 집중 시간 컬렉션   
 class TaskingTime(BaseModel):
     total_time: int
@@ -60,3 +51,24 @@ class FriendWaitColl(BaseModel):
     receiver_id: str
     request_status: Literal["pending", "denied"]
     request_date: Union[datetime, str]
+
+# 개인 공간 정보
+class FurnitureArrange(BaseModel):
+    decor_id: str
+    location: Tuple[float, float, float]
+
+class UserSpaceColl(BaseModel):
+    id: str = Field(default_factory=str, alias="_id")
+    interior_data: List[FurnitureArrange]
+
+# 장식품 정보 저장 컬렉션
+class DecorColl(BaseModel):
+    decor_id: str = Field(default_factory=str, alias="_id")
+    decor_category: Literal["desk", "chair", "shelf", "lamp", "clock", "computer", "etc"]
+    decor_size: Tuple[float, float, float]
+    decor_cost: int
+    decor_etc: dict
+    
+
+    
+    
