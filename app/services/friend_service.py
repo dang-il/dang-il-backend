@@ -9,6 +9,8 @@ from app.schemas.service_dto.friend_dto import (
     FriendApplyOutput,
     FriendApplyResInput,
     FriendApplyResOutput,
+    FriendSearchInput,
+    FriendSearchOutput,
 )
 # 기타 사용자 모듈
 from app.services.abs_service import AbsService
@@ -100,7 +102,26 @@ class FriendService(AbsService):
                     receiver_id=receiver_id
                 )
     
-    
+    @staticmethod
+    async def friend_search(input: FriendSearchInput,
+                            user_coll: MongoDBHandler = get_user_coll())->FriendSearchOutput:
+        user_name = input.name
+        
+        user_data = await user_coll.select({"name": user_name}, {"_id": 1, "name": 1, "tag": 1})
+        
+        # 존재하지 않는 정보인 경우
+        if(not user_data):
+            return FriendSearchOutput(exist_status=False)
+        # 존재하는 경우
+        else:
+            return FriendSearchOutput(
+                exist_status=True,
+                id=user_data.get("_id"),
+                name=user_data.get("name"),
+                tag=user_data.get("tag")
+            )
+            
+            
 
 def get_friend_service():
     return FriendService.get_instance()

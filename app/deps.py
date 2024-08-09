@@ -41,7 +41,7 @@ def get_user_space_coll() -> MongoDBHandler:
 def get_user_tasking_time_coll() -> MongoDBHandler:
     return MongoDBHandler(db_settings={
         "db_name": "artisticsw_db",
-        "coll_name": "user_space_coll",
+        "coll_name": "user_tasking_time_coll",
         "db_schema": UserTaskingTimeColl
     })
 

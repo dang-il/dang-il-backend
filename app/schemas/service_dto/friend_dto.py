@@ -16,3 +16,14 @@ class FriendApplyResInput(BaseModel):
 
 class FriendApplyResOutput(FriendApplyResInput):
     pass
+
+class FriendSearchInput(BaseModel):
+    search_word: str
+    
+
+class FriendSearchOutput(BaseModel):
+    exist_status: bool
+    id: Optional[str] = None
+    name: Optional[str] = None
+    tag: Optional[str] = None
+    
