@@ -10,16 +10,17 @@ class UserColl(BaseModel):
     2. 유저 이름
     3. 유저 이메일
     4. 유저 태그(친추용)
+    5. 접근 가능
     
-    5. 친구 리스트 -> 필수X
-    6. 작업 -> 필수X
+    6. 친구 리스트 -> 필수X
+    7. 작업 -> 필수X
     """
     id: str = Field(default_factory=str, alias="_id")
     name: str
     email: str
     tag: str
-    
     accessibility: bool = False
+    
     friend_list: Optional[List[str]] = None
     tasks: Optional[List[str]] = None
 

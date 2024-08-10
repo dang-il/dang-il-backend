@@ -105,20 +105,32 @@ class FriendService(AbsService):
     @staticmethod
     async def friend_search(input: FriendSearchInput,
                             user_coll: MongoDBHandler = get_user_coll())->FriendSearchOutput:
-        user_name = input.name
+        search_word = input.search_word
         
-        user_data = await user_coll.select({"name": user_name}, {"_id": 1, "name": 1, "tag": 1})
+        # 작업 생성 -> 이름검색, 태그 검색
+        name_search_task = create_task(user_coll.select({"name": search_word}, {"_id": 1, "name": 1, "tag": 1}))
+        tag_search_task = create_task(user_coll.select({"tag": search_word}, {"_id": 1, "name": 1, "tag": 1}))
+        
+        name_search_data = await name_search_task
+        tag_search_data = await tag_search_task
         
         # 존재하지 않는 정보인 경우
-        if(not user_data):
+        if(not(name_search_data or tag_search_data)):
             return FriendSearchOutput(exist_status=False)
-        # 존재하는 경우
-        else:
+        elif(name_search_data and not tag_search_data): # 이름 데이터만 존재
             return FriendSearchOutput(
                 exist_status=True,
-                id=user_data.get("_id"),
-                name=user_data.get("name"),
-                tag=user_data.get("tag")
+                user_data_list=name_search_data
+            )
+        elif(not name_search_data and tag_search_data): # 태그 데이터만 존재
+            return FriendSearchOutput(
+                exist_status=True,
+                user_data_list=tag_search_data
+            )
+        else: # 모두 존재
+            return FriendSearchOutput(
+                exist_status=True,
+                user_data_list=tag_search_data+name_search_data
             )
             
             

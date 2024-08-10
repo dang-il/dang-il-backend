@@ -66,7 +66,7 @@ class MongoDBHandler:
                 # 유효성 검사, 안되면 오류
                 if(self.db_schema is not None):
                     temp_data = self.db_schema(**documents)
-                    data = temp_data.dict(by_alias=True, exclude_unset=True)
+                    data = temp_data.dict(by_alias=True, exclude_none=True)
                 else:
                     data = documents
                 
@@ -79,7 +79,7 @@ class MongoDBHandler:
                     data_list = []
                     for elem in documents:
                         temp_data = self.db_schema(**elem)
-                        data = temp_data.dict(by_alias=True, exclude_unset=True)
+                        data = temp_data.dict(by_alias=True, exclude_none=True)
                         data_list.append(data)
                 else:
                     data_list = documents

@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Literal, Optional
+from typing import Literal, Optional, List
 
 class FriendApplyInput(BaseModel):
     sender_id: str
@@ -20,10 +20,12 @@ class FriendApplyResOutput(FriendApplyResInput):
 class FriendSearchInput(BaseModel):
     search_word: str
     
+class FriendSearchData(BaseModel):
+    id: Optional[str]
+    name: Optional[str]
+    tag: Optional[str]
 
 class FriendSearchOutput(BaseModel):
     exist_status: bool
-    id: Optional[str] = None
-    name: Optional[str] = None
-    tag: Optional[str] = None
+    user_data_list: Optional[List[FriendSearchData]] = None
     

@@ -22,7 +22,8 @@ if(__name__ == "__main__"):
             "_id": str(i),
             "name": str(i),
             "email": "test",
-            "tag": "test"
+            "tag": "test",
+            
         }
         
         friend_list.append(str(i))
@@ -55,15 +56,15 @@ if(__name__ == "__main__"):
         await session_coll.insert(session_test2)
         await user_coll.insert({
             "_id": "test1",
-            "name": "‍테스트",
-            "email": "test@khu.ac.kr",
-            "tag": "1"
+            "name": "‍test1",
+            "email": "test1",
+            "tag": "test1"
         })
         await user_coll.insert({
             "_id": "test2",
-            "name": "‍테스트2",
-            "email": "test2@khu.ac.kr",
-            "tag": "2"
+            "name": "‍test2",
+            "email": "test2",
+            "tag": "test2"
         })
         await user_space_coll.insert({
             "_id": "test1",
@@ -98,7 +99,7 @@ if(__name__ == "__main__"):
             }
         }})
         await user_coll.insert(documents)
-        await user_coll.update({"_id":"107945448565645846942"}, {"$set": {"friend_list": friend_list}})
+        await user_coll.update({"_id":"test1"}, {"$set": {"friend_list": friend_list}})
 
     asyncio.run(bundle_execute())
 

@@ -8,3 +8,6 @@ class FriendApplyRequest(BaseModel):
 class FriendApplyResRequest(BaseModel):
     consent_status: bool
     sender_id: str
+    
+class FriendSearchRequest(BaseModel):
+    search_word: str

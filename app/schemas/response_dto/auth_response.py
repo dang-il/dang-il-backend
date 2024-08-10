@@ -1,6 +1,8 @@
 from pydantic import BaseModel
 from typing import Optional
 
-class AuthGoogleCallbackResponse(BaseModel):
+class AuthCallbackResponse(BaseModel):
     message: str
     action_type: str
+    
+    

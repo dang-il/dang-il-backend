@@ -1,23 +1,23 @@
 from pydantic import BaseModel, Field
 from typing import Optional, Union
 
-class AuthGoogleCallbackInput(BaseModel):
+class AuthCallbackInput(BaseModel):
     code: str
     
-class AuthGoogleCallbackOutput(BaseModel):
+class AuthCallbackOutput(BaseModel):
     id: str = Field(..., alias="_id")
     name: str
     email: str
     
-class AuthGoogleRegisterInput(AuthGoogleCallbackOutput):
+class AuthRegisterInput(AuthCallbackOutput):
     pass
 
-class AuthGoogleRegisterOutput(BaseModel):
+class AuthRegisterOutput(BaseModel):
     session_id: str
     expires: str
     
-class AuthGoogleLoginInput(AuthGoogleCallbackOutput):
+class AuthLoginInput(AuthCallbackOutput):
     session_id: Optional[str] = None
     
-class AuthGoogleLoginOutput(AuthGoogleRegisterOutput):
+class AuthLoginOutput(AuthRegisterOutput):
     pass

@@ -8,12 +8,12 @@ from typing import Optional
 
 # DTO import
 from app.schemas.service_dto.auth_dto import (
-    AuthGoogleCallbackInput as GoogleCallbackInput, 
-    AuthGoogleCallbackOutput as GoogleCallbackOutput,
-    AuthGoogleRegisterInput as GoogleRegisterInput,   
-    AuthGoogleRegisterOutput as GoogleRegisterOutput,
-    AuthGoogleLoginInput as GoogleLoginInput,
-    AuthGoogleLoginOutput as GoogleLoginOutput,
+    AuthCallbackInput,
+    AuthCallbackOutput,
+    AuthLoginInput,
+    AuthLoginOutput,
+    AuthRegisterInput,
+    AuthRegisterOutput,
 )
 from app.schemas.database_dto.db_schemas import UserColl, SessionColl
 # 기타 사용자 모듈
@@ -34,7 +34,7 @@ class AuthService(AbsService):
         
     # 구글 로그인 처리(callback)
     @staticmethod
-    async def google_callback(input: GoogleCallbackInput)->GoogleCallbackOutput:
+    async def google_callback(input: AuthCallbackInput)->AuthCallbackOutput:
         async with AsyncClient() as client:
             print("auth code: ", input.code)
             
@@ -72,13 +72,57 @@ class AuthService(AbsService):
         user_data = user_response.json()
         user_data["_id"] = user_data.pop("id")
         
-        return GoogleCallbackOutput(**user_data)
+        return AuthCallbackOutput(**user_data)
+    
+    # 카카오 로그인 처리(callback)
+    @staticmethod
+    async def kakao_callback(input: AuthCallbackInput)->AuthCallbackOutput:
+        async with AsyncClient() as client:
+            print("auth code: ", input.code)
+            
+            post_data = {
+                    "grant_type": "authorization_code",
+                    "client_id": settings.KAKAO_CLIENT_ID,
+                    "client_secret": settings.KAKAO_CLIENT_SECRET,
+                    "redirect_uri": settings.KAKAO_REDIRECT_URI,
+                    "code": input.code,
+                }
+            
+            print("post_data: ",post_data)
+            
+            token_response = await client.post(
+                "https://kauth.kakao.com/oauth/token",
+                data = post_data,
+            )
+            
+            print("acc_token_res: " ,token_response)
+            print("acc_token: ", token_response.json())
+            # 엑세스 토큰 
+            token_response.raise_for_status()
+            token_data = token_response.json()
+        
+            # 엑세스 토큰이 안올때 400이 맞나, 애매한데 
+            if "error" in token_data:
+                    raise HTTPException(status_code=400, detail=token_data["error_description"])
+            
+            # 엑세스 토큰 기반으로 구글에 사용자 정보 받기
+            user_response = await client.get(
+                "https://kapi.kakao.com/v2/user/me",
+                headers={"Authorization": f"Bearer {token_data['access_token']}"},
+            )
+        
+        # 받아온 유저 정보
+        user_response.raise_for_status()
+        user_data = user_response.json()
+        user_data["_id"] = user_data.pop("id")
+        
+        return AuthCallbackOutput(**user_data)
     
     @staticmethod
-    async def google_register(input: GoogleRegisterInput,
+    async def register(input: AuthRegisterInput,
                            user_coll: MongoDBHandler=get_user_coll(),
                            session_coll: MongoDBHandler=get_session_coll(),
-                           session_cache: RedisHandler=get_session_cache())->GoogleRegisterOutput:
+                           session_cache: RedisHandler=get_session_cache())->AuthRegisterOutput:
         # 사용자 태그 선택
         user_coll_conn = user_coll.get_collection_conn()
         user_tag = (str(await user_coll_conn.count_documents({})).zfill(5))[::-1]
@@ -116,15 +160,15 @@ class AuthService(AbsService):
         session_cache_conn = await session_cache.get_redis_conn()
         await session_cache_conn.expire(session_cache_id, ttl)
         
-        return GoogleRegisterOutput(
+        return AuthRegisterOutput(
             session_id = session_document.id,
             expires = (session_document.created_at + datetime.timedelta(days=3)).strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
         )
         
     @staticmethod
-    async def google_login(input: GoogleLoginInput,
+    async def login(input: AuthLoginInput,
                            session_coll: MongoDBHandler=get_session_coll(),
-                           session_cache: RedisHandler=get_session_cache())->GoogleLoginOutput:
+                           session_cache: RedisHandler=get_session_cache())->AuthLoginOutput:
         # 세션 id 존재하는 경우 삭제, 또는 존재하는 identifier인 경우 삭제
         # 만료시간 연장도 되지만 로직이 복잡해짐 그냥 삭제 후 다시 만들기로
         if(input.session_id is not None):
@@ -165,7 +209,7 @@ class AuthService(AbsService):
         session_cache_conn = await session_cache.get_redis_conn()
         await session_cache_conn.expire(session_cache_id, ttl)
         
-        return GoogleLoginOutput(
+        return AuthLoginOutput(
             session_id = session_document.id,
             expires = (session_document.created_at + datetime.timedelta(days=3)).strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
         )        

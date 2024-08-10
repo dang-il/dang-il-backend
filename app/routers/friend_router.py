@@ -1,20 +1,25 @@
 #libraries
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import HTTPException
 # DTO 
 from app.schemas.service_dto.friend_dto import (
     FriendApplyInput,
     FriendApplyOutput,
     FriendApplyResInput,
     FriendApplyResOutput,
+    FriendSearchInput,
+    FriendSearchOutput,
 )
 from app.schemas.request_dto.friend_request import (
     FriendApplyRequest,
     FriendApplyResRequest,
+    FriendSearchRequest
 )
 from app.schemas.response_dto.friend_response import (
     FriendApplyResponse,
     FriendApplyResResponse,
+    FriendSearchResponse,
 )
 from app.schemas.service_dto.etc.sse_dto import (
     InsertSSEQueueInput,
@@ -122,8 +127,24 @@ async def post_friend_apply_response(request: Request,
         }
     )
 
+@router.post(path="/search" )
+async def post_friend_search(post_input: FriendSearchRequest,
+                             friend_service: FriendService = Depends(get_friend_service)):
+    search_word = post_input.search_word
     
-
+    friend_search_input = FriendSearchInput(search_word=search_word)
+    friend_search_data: FriendSearchOutput = await friend_service.friend_search(friend_search_input)
+    
+    if(not friend_search_data.exist_status):
+        return JSONResponse(
+            content={"message": "The search data does not exist"},
+            status_code=204
+        )
+    else:
+        return FriendSearchResponse(
+            message="search data successfully transported",
+            user_data_list=friend_search_data.user_data_list
+        )
     
 
     
