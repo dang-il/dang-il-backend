@@ -81,7 +81,8 @@ async def auth_google_callback(post_input: AuthCallbackRequest,
     
     return AuthCallbackResponse(
         message=response_message,
-        action_type=response_action_type
+        action_type=response_action_type,
+        name=user_data.name,
     )
     
 @router.get("/kakao/login")
@@ -143,6 +144,7 @@ async def auth_google_callback(post_input: AuthCallbackRequest,
     
     return AuthCallbackResponse(
         message=response_message,
-        action_type=response_action_type
+        action_type=response_action_type,
+        name=user_data.name,
     )
     
