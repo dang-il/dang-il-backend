@@ -87,11 +87,16 @@ async def auth_google_callback(post_input: AuthCallbackRequest,
         name=user_data.name,
     )
     
-@router.get("/logout")
+@router.get("/google/logout")
 async def logout(request: Request,
                  auth_service: AuthService = Depends(get_auth_service)):
     user_data = await SessionMiddleware.session_check(request)
-    if user_data:
+
+    user_google_data = request.session.get('user')
+    if not user_google_data:
+        raise HTTPException(status_code=401, detail="Failed")
+    
+    if user_google_data:
         if 'user' in request.session:
             del request.session['user']
 
