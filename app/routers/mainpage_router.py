@@ -12,11 +12,11 @@ from app.schemas.service_dto.mainpage_dto import (
 from app.schemas.response_dto.mainpage_response import (
     MainpageResponse
 )
+from app.api_spec.mainpage_spec import MainpageSpec
 
 router = APIRouter()
 
-# 이거 또 에러임, 이유 찾아라
-@router.get("/", response_model = MainpageResponse)
+@router.get("/", response_model = MainpageResponse, **(MainpageSpec.mainpage()))
 async def get_mainpage(request: Request,
                        mainpage_service: MainpageService = Depends(get_mainpage_service)):
     

@@ -36,7 +36,6 @@ class AuthService(AbsService):
     @staticmethod
     async def google_callback(input: AuthCallbackInput)->AuthCallbackOutput:
         async with AsyncClient() as client:
-            print("auth code: ", input.code)
             
             post_data = {
                     "grant_type": "authorization_code",
@@ -46,15 +45,11 @@ class AuthService(AbsService):
                     "code": input.code,
                 }
             
-            print("post_data: ",post_data)
-            
             token_response = await client.post(
                 "https://oauth2.googleapis.com/token",
                 data = post_data,
             )
-            
-            print("acc_token_res: " ,token_response)
-            print("acc_token: ", token_response.json())
+
             # 엑세스 토큰 
             token_data = token_response.json()
         
@@ -78,8 +73,7 @@ class AuthService(AbsService):
     @staticmethod
     async def kakao_callback(input: AuthCallbackInput)->AuthCallbackOutput:
         async with AsyncClient() as client:
-            print("auth code: ", input.code)
-            
+
             post_data = {
                     "grant_type": "authorization_code",
                     "client_id": settings.KAKAO_CLIENT_ID,
@@ -88,15 +82,11 @@ class AuthService(AbsService):
                     "code": input.code,
                 }
             
-            print("post_data: ",post_data)
-            
             token_response = await client.post(
                 "https://kauth.kakao.com/oauth/token",
                 data = post_data,
             )
             
-            print("acc_token_res: " ,token_response)
-            print("acc_token: ", token_response.json())
             # 엑세스 토큰 
             token_response.raise_for_status()
             token_data = token_response.json()
@@ -113,8 +103,14 @@ class AuthService(AbsService):
         
         # 받아온 유저 정보
         user_response.raise_for_status()
-        user_data = user_response.json()
-        user_data["_id"] = user_data.pop("id")
+        user_json = user_response.json()
+        print("jsoncheck: ", user_json)
+        user_data = {
+            "_id": str(user_json.get("id")),
+            "name": str(user_json.get("properties").get("nickname")),
+            "email": str(user_json.get("kakao_account").get("email")),
+        }
+        print("cheking:", user_data)
         
         return AuthCallbackOutput(**user_data)
     
