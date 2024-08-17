@@ -102,6 +102,7 @@ class FriendService(AbsService):
                     receiver_id=receiver_id
                 )
     
+    # 추후 일부 단어 or 초성검사 하도록 수정
     @staticmethod
     async def friend_search(input: FriendSearchInput,
                             user_coll: MongoDBHandler = get_user_coll())->FriendSearchOutput:
