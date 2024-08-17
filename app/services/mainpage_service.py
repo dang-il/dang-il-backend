@@ -12,6 +12,8 @@ from app.services.abs_service import AbsService
 from app.deps import get_user_coll, get_user_space_coll, get_user_tasking_time_coll
 from app.utils.db_handlers.mongodb_handler import MongoDBHandler
 
+
+# 친구 id 파트에서 오류가 날 것 같음(확인 필요)
 class MainpageService(AbsService):
     instance: Optional["MainpageService"] = None
     # 싱글톤 반환

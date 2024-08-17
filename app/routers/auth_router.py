@@ -87,7 +87,7 @@ async def auth_google_callback(post_input: AuthCallbackRequest,
         name=user_data.name,
     )
     
-@router.get("/google/logout")
+@router.get("/google/logout", **(AuthSpec.auth_google_logout()))
 async def logout(request: Request,
                  auth_service: AuthService = Depends(get_auth_service)):
     user_data = await SessionMiddleware.session_check(request)

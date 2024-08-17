@@ -112,3 +112,10 @@ class AuthSpec:
             }
         }
         return spec
+
+    @staticmethod
+    def auth_google_logout():
+        spec = {
+            "summary": "미완성 api"
+        }
+        return spec

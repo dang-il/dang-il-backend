@@ -28,10 +28,11 @@ from app.schemas.service_dto.etc.sse_dto import (
 from app.middleware.session.session_middleware import SessionMiddleware
 from app.services.friend_service import FriendService, get_friend_service
 from app.services.etc.sse_connection_service import SSEConnectionService, get_sse_connection_service
+from app.api_spec.friend_spec import FriendSpec
 
 router = APIRouter()
 
-@router.post(path="/apply", responses={200: {"model":FriendApplyResponse}})
+@router.post(path="/apply", response_model=FriendApplyResponse, **(FriendSpec.friend_apply()))
 async def post_friend_apply(request: Request,
                             post_input: FriendApplyRequest,
                             friend_service: FriendService = Depends(get_friend_service),
@@ -80,7 +81,7 @@ async def post_friend_apply(request: Request,
         }
     )
 
-@router.post(path="/apply/response", response_model=FriendApplyResResponse)
+@router.post(path="/apply/response", response_model=FriendApplyResResponse, **(FriendSpec.friend_apply_response()))
 async def post_friend_apply_response(request: Request,
                                     post_input: FriendApplyResRequest,
                                     friend_service: FriendService = Depends(get_friend_service),
@@ -127,7 +128,7 @@ async def post_friend_apply_response(request: Request,
         }
     )
 
-@router.post(path="/search" )
+@router.post(path="/search", **(FriendSpec.friend_search()))
 async def post_friend_search(post_input: FriendSearchRequest,
                              friend_service: FriendService = Depends(get_friend_service)):
     search_word = post_input.search_word
