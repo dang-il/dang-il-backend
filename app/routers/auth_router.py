@@ -2,10 +2,11 @@
 from fastapi import APIRouter, Depends, Request, Response
 from fastapi.responses import RedirectResponse
 from fastapi.exceptions import HTTPException
-
 # 의존성 
 from app.deps import get_user_coll
 from app.services.auth_service import get_auth_service, AuthService
+# 미들웨어
+from app.middleware.session.session_middleware import SessionMiddleware
 # DTO 
 from app.schemas.service_dto.auth_dto import (
     AuthCallbackInput,
@@ -86,6 +87,18 @@ async def auth_google_callback(post_input: AuthCallbackRequest,
         name=user_data.name,
     )
     
+@router.get("/logout")
+async def logout(request: Request,
+                 auth_service: AuthService = Depends(get_auth_service)):
+    user_data = await SessionMiddleware.session_check(request)
+    if user_data:
+        if 'user' in request.session:
+            del request.session['user']
+
+    return RedirectResponse(
+        f"https://accounts.google.com/Logout?continue=https://appengine.google.com/_ah/logout?continue={settings.GOOGLE_REDIRECT_URI}"
+    )
+
 @router.get("/kakao/login", **(AuthSpec.auth_kakao_login()))
 async def auth_kakao_login():
     kakao_auth_url = (

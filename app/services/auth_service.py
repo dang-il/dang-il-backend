@@ -208,7 +208,7 @@ class AuthService(AbsService):
         return AuthLoginOutput(
             session_id = session_document.id,
             expires = (session_document.created_at + datetime.timedelta(days=3)).strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
-        )        
+        )       
         
 # 의존성 반환
 def get_auth_service()->AuthService:
