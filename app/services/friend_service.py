@@ -35,7 +35,7 @@ class FriendService(AbsService):
         receiver_id = input.receiver_id 
         # task 생성
         check_exist_user_task = create_task(user_coll.select({"_id": receiver_id}))
-        check_is_requested_task = create_task(friend_wait_coll.select({"_id": {sender_id, receiver_id}}))
+        check_is_requested_task = create_task(friend_wait_coll.select({"_id": {"sender_id": sender_id, "receiver_id": receiver_id}}))
         
         # 본인 아이디로 친구 추가 혹은 존재하지 않는 아이디로 친구추가 -> 에러
         if(sender_id == receiver_id or await check_exist_user_task == False):

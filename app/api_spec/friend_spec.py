@@ -107,6 +107,23 @@ class FriendSpec:
                             }
                         }
                     }
+                },
+                400:{
+                    "description": "처리 대기 중인 요청이 없는 경우",
+                    "content": {
+                        "application/json": {
+                            "examples": {
+                                "응답 예시": {
+                                    "summary": "응답 예시",
+                                    "value": {
+                                        {
+                                            "detail": "Requested data does not exist"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
