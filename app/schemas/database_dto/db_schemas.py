@@ -61,6 +61,9 @@ class FurnitureArrange(BaseModel):
 class UserSpaceColl(BaseModel):
     id: str = Field(default_factory=str, alias="_id")
     interior_data: List[FurnitureArrange]
+    todo_list: List[str] = []
+    board: Dict[str, str] = None
+
 
 # 장식품 정보 저장 컬렉션
 class DecorColl(BaseModel):

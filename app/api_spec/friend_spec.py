@@ -116,9 +116,7 @@ class FriendSpec:
                                 "응답 예시": {
                                     "summary": "응답 예시",
                                     "value": {
-                                        {
-                                            "detail": "Requested data does not exist"
-                                        }
+                                        "detail": "Requested data does not exist"
                                     }
                                 }
                             }

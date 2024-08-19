@@ -13,6 +13,7 @@ from routers.mainpage_router import router as mainpage_router
 from routers.guestmode_router import router as guestmode_router
 from routers.etc.sse_connection_router import router as sse_router
 from routers.friend_router import router as friend_router
+from routers.user_space_router import router as space_router
 
 app = FastAPI(
     title="예술적인 소프트웨어 dangil api 문서",
@@ -34,6 +35,7 @@ app.include_router(mainpage_router, prefix="/mainpage", tags=["mainpage"])
 app.include_router(guestmode_router, prefix="/guestmode", tags=["guestmode"])
 app.include_router(sse_router, prefix="/sse", tags=["sse"])
 app.include_router(friend_router, prefix="/friend", tags=["friend"])
+app.include_router(space_router, prefix="/space", tags=["space"])
 
 @app.get("/")
 async def index():
