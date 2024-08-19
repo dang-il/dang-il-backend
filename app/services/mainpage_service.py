@@ -45,6 +45,8 @@ class MainpageService(AbsService):
         if(friend_list is not None and friend_list != []):
             friend_task_list = [create_task(user_coll.select({"_id": id})) for id in friend_list]
             friend_data_count += len(friend_list)
+            print("친구데이터 카운트", len(friend_task_list))
+
         # 전체 - 본인(1)- 친구가 1 이상이면 모르는 사람 무작위로 불러옴
         unknown_data_count = total_data_count-1-friend_data_count
         if(unknown_data_count > 0):
@@ -67,15 +69,18 @@ class MainpageService(AbsService):
         if((friend_list is not None and friend_list != [])
            and unknown_data_count > 0): # 친구 O, 모르는 O
             friend_data = await gather(*friend_task_list)
+            print("친구데이터", friend_data)
             unknown_user_data = await unknown_user_cursor.to_list(length=None)
             # 모두 id들어있는 리스트로 변환
-            friend_id_list = [{"_id": elem for elem in friend_list}]
+            friend_id_list = [{"_id": elem} for elem in friend_list]
             unknown_user_list = [{"_id": elem.get("_id")} for elem in unknown_user_data]
 
             # 공간 정보 받아오기 작업
             user_space_task = create_task(user_space_coll.select({"_id": user_id}))
             friend_space_task_list = [create_task(user_space_coll.select(elem)) for elem in friend_id_list]
             unknown_space_task_list = [create_task(user_space_coll.select(elem)) for elem in unknown_user_list]
+            print("친구아이디리스트", friend_id_list)
+            print(len(friend_space_task_list))
             # 작업 시간 정보 받아오기 작업
             user_tasking_time_task = create_task(user_taskingtime_coll.select({"_id": user_id}))
             friend_tasking_time_task = [create_task(user_taskingtime_coll.select(elem)) for elem in friend_id_list]
@@ -92,11 +97,12 @@ class MainpageService(AbsService):
              unknown_data_count <= 0): # 친구는 O, 모르는 사람 X
             friend_data = await gather(*friend_task_list)
             # 모두 id 들어있는 리스트로 변환
-            friend_id_list = [{"_id": elem for elem in friend_list}]
+            friend_id_list = [{"_id": elem} for elem in friend_list]
             
             # 공간 정보 받아오기
             user_space_task = create_task(user_space_coll.select({"_id": user_id}))
             friend_space_task_list = [create_task(user_space_coll.select(elem)) for elem in friend_id_list]
+        
             # 작업 시간 정보 받아오기
             user_tasking_time_task = create_task(user_taskingtime_coll.select({"_id": user_id}))
             friend_tasking_time_task = [create_task(user_taskingtime_coll.select(elem)) for elem in friend_id_list]

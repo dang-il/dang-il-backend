@@ -111,7 +111,7 @@ async def post_friend_apply_response(request: Request,
             }
         }
         insert_queue_input = InsertSSEQueueInput(
-            user_id=receiver_id,
+            user_id=sender_id,
             insert_data=queue_message
         )
         await sse_connection_service.insert_sse_queue(insert_queue_input)

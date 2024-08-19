@@ -17,19 +17,19 @@ if(__name__ == "__main__"):
 
     documents = []
     friend_list = []
+    # 친구 도큐먼트 8개
     for i in range(8):
         data = {
             "_id": str(i),
             "name": str(i),
-            "email": "test",
-            "tag": "test",
+            "email": str(i),
+            "tag": str(i),
             
         }
-        
         friend_list.append(str(i))
         documents.append(data)
-
-    for i in range(8,40):
+    # 친구 아닌 도큐먼트 12개
+    for i in range(8,20):
         data = {
             "_id": str(i),
             "name": str(i),
@@ -38,6 +38,7 @@ if(__name__ == "__main__"):
         }
         
         documents.append(data)
+    
         
     async def bundle_execute():
         session_test1 = {
@@ -50,10 +51,11 @@ if(__name__ == "__main__"):
             "identifier": "test2",
             "created_at": str(datetime.now(timezone.utc))
         }
-        await session_cache.insert(session_test1)
-        await session_cache.insert(session_test2)
-        await session_coll.insert(session_test1)
-        await session_coll.insert(session_test2)
+        
+        # 묶어서 실행
+        await asyncio.gather(session_cache.insert(session_test1), session_cache.insert(session_test2), session_coll.insert(session_test1), session_coll.insert(session_test2))
+
+        # 테스트 데이터
         await user_coll.insert({
             "_id": "test1",
             "name": "‍test1",
@@ -98,6 +100,21 @@ if(__name__ == "__main__"):
                 }
             }
         }})
+        # 친구 데이터에서 공간정보 예시 넣기
+        await user_space_coll.insert({
+            "_id": "0",
+            "interior_data": [{
+                "decor_id": "0",
+                "location": (0.0, 0.0, 0.0)
+            }]
+        })
+        await user_space_coll.insert({
+            "_id": "1",
+            "interior_data": [{
+                "decor_id": "1",
+                "location": (1.0, 1.0, 1.0)
+            }]
+        })
         await user_coll.insert(documents)
         await user_coll.update({"_id":"test1"}, {"$set": {"friend_list": friend_list}})
 
