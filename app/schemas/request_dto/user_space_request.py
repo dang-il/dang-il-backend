@@ -9,25 +9,21 @@ class SpaceSaveRequest(BaseModel):
     interior_data: List[Optional[FurnitureArrange]] = Field(
         ..., 
         description="인테리어 데이터 리스트로 보내기", 
-        example={
-            "interior_data": [
-                    {
-                    "decor_id": "desk1",
-                    "location": [
-                            1,
-                            2,
-                            3
-                        ]
-                    }
-                ]
-            }
-        )
+        example=
+                {
+                "decor_id": "desk1",
+                "location": [
+                        1,
+                        2,
+                        3
+                    ]
+                }
+    )
 
 class PostTodoRequest(BaseModel):
     todo_data: List[str] = Field(..., 
         description="Todo 데이터 리스트로 보내기",
-        example={
-            "todo_data": [
+        example=[
                 "국어", "수학"
             ]
-        })
+        )
