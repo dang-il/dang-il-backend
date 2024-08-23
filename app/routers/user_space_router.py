@@ -30,11 +30,12 @@ from app.schemas.response_dto.user_space_response import (
     DeleteSpaceResponse,
 )
 # 기타 사용자 모듈
+from app.api_spec.user_space_spec import UserSpaceSpec
 
 router = APIRouter()
 
 # 유저 공간 정보 불러오기 + 이때 할일 적은 것+게시판도 같은 컬렉션에 넣기/ 메인페이지에는 안 가도록 함
-@router.get("/{path_user_id}", response_model=GetSpaceResponse)
+@router.get("/{path_user_id}", response_model=GetSpaceResponse, **(UserSpaceSpec.space()))
 async def get_space(request: Request,
                     path_user_id: str,
                     user_space_service: UserSpaceService = Depends(get_user_space_service)):
@@ -62,7 +63,7 @@ async def get_space(request: Request,
         return JSONResponse(status_code=204)
 
 # 유저 공간 정보 저장하기
-@router.post("/save", response_model=SaveSpaceResponse)
+@router.post("/save", response_model=SaveSpaceResponse, **(UserSpaceSpec.space_save()))
 async def post_space_save(request: Request,
                           post_input: SpaceSaveRequest,
                           user_space_service: UserSpaceService = Depends(get_user_space_service)):
@@ -77,7 +78,7 @@ async def post_space_save(request: Request,
     )
 
 # 유저 공간 정보 초기화
-@router.delete("/delete", response_model=DeleteSpaceResponse)
+@router.delete("/delete", response_model=DeleteSpaceResponse, **(UserSpaceSpec.space_delete()))
 async def delete_space(request:Request,
                        user_space_service: UserSpaceService = Depends(get_user_space_service)):
     user_data = await SessionMiddleware.session_check(request)
@@ -90,7 +91,7 @@ async def delete_space(request:Request,
     )
 
 # 할일 불러오기
-@router.get("/todo", response_model=GetTodoResponse)
+@router.get("/todo", response_model=GetTodoResponse, **(UserSpaceSpec.space_get_todo()))
 async def get_space_todo(request:Request,
                          user_space_service: UserSpaceService = Depends(get_user_space_service)):
     user_data = await SessionMiddleware.session_check(request)
@@ -105,7 +106,7 @@ async def get_space_todo(request:Request,
     )
 
 # 할일 저장하기 -> 초기 저장 이후 불러와야 하므로 저장되는 양식과 동일하게 적기
-@router.post("/todo", response_model=PostTodoResponse)
+@router.post("/todo", response_model=PostTodoResponse, **(UserSpaceSpec.space_post_todo()))
 async def post_space_todo(request:Request,
                           post_input: PostTodoRequest,
                           user_space_service: UserSpaceService = Depends(get_user_space_service)):
@@ -121,7 +122,7 @@ async def post_space_todo(request:Request,
     )
 
 # 할일 통째로 지우기
-@router.delete("/todo", response_model=DeleteSpaceResponse)
+@router.delete("/todo", response_model=DeleteSpaceResponse, **(UserSpaceSpec.space_delete_todo()))
 async def delete_space_todo(request: Request,
                             user_space_service: UserSpaceService = Depends(get_user_space_service)):
     user_data = await SessionMiddleware.session_check(request)
@@ -137,11 +138,11 @@ async def delete_space_todo(request: Request,
 
 
 # 게시판 확인하기
-@router.get("/board")
+@router.get("/board", **(UserSpaceSpec.space_board()))
 async def get_space_board():
     pass
 
 # 친구, 모르는 유저 공간 게시판에 메모 남기기
-@router.post("/board/write")
+@router.post("/board/write", **(UserSpaceSpec.space_board_write()))
 async def post_space_board_write():
     pass

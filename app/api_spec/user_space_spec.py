@@ -19,39 +19,37 @@ class UserSpaceSpec:
                                     "응답 예시": {
                                         "summary": "응답 예시",
                                         "value": {
-                                            {
-                                                "message": "data successfully transferred",
-                                                "data": {
-                                                    "accessibility": True,
-                                                    "user_space_data": {
-                                                        "_id": "test1",
-                                                        "interior_data": [
-                                                            {
-                                                                "decor_id": "desk1",
-                                                                "location": [
-                                                                    1.0,
-                                                                    2.0,
-                                                                    3.0
-                                                                ]
-                                                            }
-                                                        ]
+                                            "message": "data successfully transferred",
+                                            "data": {
+                                                "accessibility": True,
+                                                "user_space_data": {
+                                                    "_id": "test1",
+                                                    "interior_data": [
+                                                        {
+                                                            "decor_id": "desk1",
+                                                            "location": [
+                                                                1.0,
+                                                                2.0,
+                                                                3.0
+                                                            ]
+                                                        }
+                                                    ]
+                                                },
+                                                "user_tasking_time_data": {
+                                                    "_id": "test1",
+                                                    "today_tasking_time": {
+                                                        "total_time": 3600,
+                                                        "task_specific_time": {
+                                                            "math": 1900,
+                                                            "coding": 1700
+                                                        }
                                                     },
-                                                    "user_tasking_time_data": {
-                                                        "_id": "test1",
-                                                        "today_tasking_time": {
-                                                            "total_time": 3600,
+                                                    "previous_tasking_time": {
+                                                        "day1": {
+                                                            "total_time": 10800,
                                                             "task_specific_time": {
-                                                                "math": 1900,
-                                                                "coding": 1700
-                                                            }
-                                                        },
-                                                        "previous_tasking_time": {
-                                                            "day1": {
-                                                                "total_time": 10800,
-                                                                "task_specific_time": {
-                                                                    "math": 5400,
-                                                                    "coding": 5400
-                                                                }
+                                                                "math": 5400,
+                                                                "coding": 5400
                                                             }
                                                         }
                                                     }
@@ -64,5 +62,198 @@ class UserSpaceSpec:
                         }
                     },
                 }
+            }
+        return spec
+    
+    @staticmethod
+    def space_save():
+        spec = {
+            "summary": "유저 공간 데이터 저장하는 엔드포인트",
+            "description": 
+                """
+                    유저가 공간을 꾸민 후 그 정보를 저장하는 엔드포인트 <br><br> 
+                    유저 공간 데이터 중 인테리어 데이터만을 보내면 됨 <br><br> 
+                    본인 검증을 위해 쿠키에 session_id 필수
+                """,
+            "operation_id": "space_save",
+            "responses": {
+                200: {
+                    "description": "유저의 인테리어 데이터 리스트를 요청 본문으로 받고 업데이트된 공간 데이터 전체를 응답",
+                    "content": {
+                            "application/json": {
+                                "examples": {
+                                    "응답 예시": {
+                                        "summary": "응답 예시",
+                                        "value": {
+                                            "message": "space data successfully updated",
+                                            "data": {
+                                                "accessibility": True,
+                                                "user_space_data": {
+                                                    "_id": "test1",
+                                                    "interior_data": [
+                                                        {
+                                                            "decor_id": "desk1",
+                                                            "location": [
+                                                                1.0,
+                                                                2.0,
+                                                                3.0
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    },
+                                }
+                            }
+                        }
+                    },
+                }
+            }
+        return spec
+
+    @staticmethod
+    def space_delete():
+        spec = {
+            "summary": "유저 공간 데이터 초기화하는 엔드포인트",
+            "description": 
+                """
+                    유저 공간 데이터 초기화하는 엔드포인트 <br><br>
+                    본인 검증을 위해 쿠키에 session_id 필수
+                """,
+            "operation_id": "space_delete",
+            "responses": {
+                200: {
+                    "description": "유저 공간 데이터를 초기화하는 엔드포인트",
+                    "content": {
+                            "application/json": {
+                                "examples": {
+                                    "응답 예시": {
+                                        "summary": "응답 예시",
+                                        "value": {
+                                            "message": "space data successfully deleted",
+                                        }
+                                    },
+                                }
+                            }
+                        }
+                    },
+                }
+            }
+        return spec
+    
+    @staticmethod
+    def space_get_todo():
+        spec = {
+            "summary": "본인 할일(Todo) 불러오는 엔드포인트",
+            "description": 
+                """
+                    본인 Todo list 불러오는 엔드포인트 <br><br> 
+                    본인 검증을 위해 쿠키에 session_id 필수
+                """,
+            "operation_id": "space_get_todo",
+            "responses": {
+                200: {
+                    "description": "유저 본인이 기존에 설정한 TodoList 불러오기",
+                    "content": {
+                            "application/json": {
+                                "examples": {
+                                    "응답 예시": {
+                                        "summary": "응답 예시",
+                                        "value": {
+                                            "message": "todo data successfully transmitted",
+                                            "todo": ['국어', '수학']
+                                        }
+                                    },
+                                }
+                            }
+                        }
+                    },
+                }
+            }
+        return spec
+    
+    @staticmethod
+    def space_post_todo():
+        spec = {
+            "summary": "본인 할일(Todo) 저장하는 엔드포인트",
+            "description": 
+                """
+                    본인 Todo list 저장하는 엔드포인트 <br><br> 
+                    본인 검증을 위해 쿠키에 session_id 필수
+                """,
+            "operation_id": "space_post_todo",
+            "responses": {
+                200: {
+                    "description": "유저 본인이 변경한 TodoList 데이터 불러오기",
+                    "content": {
+                            "application/json": {
+                                "examples": {
+                                    "응답 예시": {
+                                        "summary": "응답 예시",
+                                        "value": {
+                                            "message": "todo data successfully saved",
+                                            "todo": ['국어', '수학']
+                                        }
+                                    },
+                                }
+                            }
+                        }
+                    },
+                }
+            }
+        return spec
+    
+    @staticmethod
+    def space_delete_todo():
+        spec = {
+            "summary": "본인 할일(Todo) 전체 삭제하는 엔드포인트",
+            "description": 
+                """
+                    본인 Todo list 저장하는 엔드포인트 <br><br> 
+                    본인 검증을 위해 쿠키에 session_id 필수
+                """,
+            "operation_id": "space_delete_todo",
+            "responses": {
+                200: {
+                    "description": "유저가 기존에 설정한 할일(Todo) 전체 삭제 후 메시지만 응답",
+                    "content": {
+                            "application/json": {
+                                "examples": {
+                                    "응답 예시": {
+                                        "summary": "응답 예시",
+                                        "value": {
+                                            "message": "todo data successfully deleted"
+                                        }
+                                    },
+                                }
+                            }
+                        }
+                    },
+                }
+            }
+        return spec
+    
+    @staticmethod
+    def space_board():
+        spec = {
+            "summary": "미완성 엔드포인트",
+            "description": 
+                """
+                    미구현된 엔드포인트
+                """,
+            "operation_id": "space_board"
+            }
+        return spec
+    
+    @staticmethod
+    def space_board_write():
+        spec = {
+            "summary": "미완성 엔드포인트",
+            "description": 
+                """
+                    미구현된 엔드포인트
+                """,
+            "operation_id": "space_board_write"
             }
         return spec
