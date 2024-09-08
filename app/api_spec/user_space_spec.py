@@ -257,3 +257,15 @@ class UserSpaceSpec:
             "operation_id": "space_board_write"
             }
         return spec
+    
+    @staticmethod
+    def space_board_delete():
+        spec = {
+            "summary": "미완성 엔드포인트",
+            "description": 
+                """
+                    미구현된 엔드포인트
+                """,
+            "operation_id": "space_board_write"
+            }
+        return spec

@@ -27,3 +27,5 @@ class PostTodoRequest(BaseModel):
                 "국어", "수학"
             ]
         )
+class PostBoardRequest(BaseModel):
+    memo: dict
