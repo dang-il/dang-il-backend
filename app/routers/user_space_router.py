@@ -146,7 +146,7 @@ async def delete_space_todo(request: Request,
     )
 
 # 게시판 확인하기 -> 세션 미들웨어 필요하지 X
-@router.get("/board/{path_user_id}", **(UserSpaceSpec.space_board()))
+@router.get("/board/{path_user_id}")#, **(UserSpaceSpec.space_board()))
 async def get_space_board(path_user_id,
                           user_space_service: UserSpaceService = Depends(get_user_space_service)):
     get_board_input = GetBoardInput(path_user_id)
@@ -157,7 +157,7 @@ async def get_space_board(path_user_id,
     )
 
 # 친구, 모르는 유저 공간 게시판에 메모 남기기 -> 세션 필요, path_user_id는 게시판 주인 유저
-@router.post("/board/{path_user_id}", **(UserSpaceSpec.space_board_write()))
+@router.post("/board/{path_user_id}")#, **(UserSpaceSpec.space_board_write()))
 async def post_space_board(request: Request,
                            path_user_id,
                            post_input: PostBoardRequest,
@@ -175,7 +175,7 @@ async def post_space_board(request: Request,
 
     return PostBoardResponse(post_board_output.memo_data)
 
-@router.delete("/board", **(UserSpaceSpec.space_board_delete()))
+@router.delete("/board")#, **(UserSpaceSpec.space_board_delete()))
 async def delete_space_board(request: Request,
                              user_space_service: UserSpaceService = Depends(get_user_space_service)):
     user_data = await SessionMiddleware.session_check(request)
