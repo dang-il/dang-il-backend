@@ -237,12 +237,35 @@ class UserSpaceSpec:
     @staticmethod
     def space_board():
         spec = {
-            "summary": "미완성 엔드포인트",
+            "summary": "개인 공간의 게시판의 글들을 모두 가져오는 엔드포인트",
             "description": 
                 """
-                    미구현된 엔드포인트
+                    개인 공간의 게시판 글들을 모두 가져오는 엔드포인트 <br><br> 
+                    세션 id 필요하지 않음 <br><br>
+                    모든 사람들이 사용 가능
                 """,
-            "operation_id": "space_board"
+            "operation_id": "space_board",
+            "responses": {
+                200: {
+                    "description": "해당 유저의 개인 페이지에 작성되어 있는 게시판의 메모들 불러오기",
+                    "content": {
+                            "application/json": {
+                                "examples": {
+                                    "응답 예시": {
+                                        "summary": "응답 예시",
+                                        "value": {
+                                            "board_data": [{
+                                                "sender_id":"", 
+                                                "sender_name": "",
+                                                "content": ""
+                                                }]
+                                        }
+                                    },
+                                }
+                            }
+                        }
+                    },
+                }
             }
         return spec
     

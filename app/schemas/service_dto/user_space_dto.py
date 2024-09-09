@@ -45,7 +45,7 @@ class GetBoardInput(BaseModel):
     id: str
 
 class GetBoardOutput(BaseModel):
-    board_data: dict
+    board_data: list
 
 class PostBoardInput(BaseModel):
     sender_id: str
