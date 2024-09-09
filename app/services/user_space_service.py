@@ -15,6 +15,12 @@ from app.schemas.service_dto.user_space_dto import (
     SaveTodoInput,
     SaveTodoOutput,
     DeleteTodoInput,
+    GetBoardInput,
+    GetBoardOutput,
+    PostBoardInput,
+    PostBoardOutput,
+    DeleteBoardInput,
+    DeleteBoardOutput,
 )
 # 기타 사용자 모듈
 from app.services.abs_service import AbsService
@@ -106,9 +112,6 @@ class UserSpaceService(AbsService):
             HTTPException(status_code=400)
         else:
             return SaveTodoOutput(todo_list)
-        
-
-
 
     @staticmethod
     async def delete_todo(input: DeleteTodoInput,
@@ -118,6 +121,50 @@ class UserSpaceService(AbsService):
 
         if(delete_result == False):
             raise HTTPException(status_code=400)
+        
+    @staticmethod
+    async def get_board(input: GetBoardInput,
+                        user_space_coll: MongoDBHandler = get_user_space_coll()) -> GetBoardOutput:
+        user_id = input.id
+        board_data = await user_space_coll.select({"_id": user_id}, {"board": 1})
+        return GetBoardOutput(board_data=board_data)
+
+    @staticmethod # 작업중
+    async def post_board(input: PostBoardInput,
+                         user_space_coll: MongoDBHandler = get_user_space_coll()) -> PostBoardOutput:
+        receiver_id = input.receiver_id
+        sender_name = input.sender_name
+        sender_id = input.sender_id
+        memo_data = input.memo
+
+        memo = {
+            "sender_id": sender_id,
+            "sender_name": sender_name,
+            "content": memo_data,
+            "date" : datetime.now(timezone.utc)
+        }
+
+        await user_space_coll.update(
+            {"_id": receiver_id},
+            {"$push": {"board": memo.dict()}}
+        )
+
+        memo_data = await user_space_coll.select(
+            {"_id": receiver_id},
+            {"board":1}
+        )
+
+        return PostBoardOutput(memo_data = memo_data)
+    
+    @staticmethod
+    async def delete_board(input: DeleteBoardInput,
+                           user_space_coll: MongoDBHandler = get_user_space_coll())->DeleteBoardOutput:
+        receiver_id = input.receiver_id
+        await user_space_coll.delete(
+            {"_id": receiver_id},  
+            {"$set": {"board": []}}
+        )
+
 
 def get_user_space_service():
     return UserSpaceService.get_instance()

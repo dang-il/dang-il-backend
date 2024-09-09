@@ -17,10 +17,17 @@ from app.schemas.service_dto.user_space_dto import (
     SaveTodoInput,
     SaveTodoOutput,
     DeleteTodoInput,
+    GetBoardInput,
+    GetBoardOutput,
+    PostBoardInput,
+    PostBoardOutput,
+    DeleteBoardInput,
+    DeleteBoardOutput
 )
 from app.schemas.request_dto.user_space_request import (
     SpaceSaveRequest,
     PostTodoRequest,
+    PostBoardRequest,
 )
 from app.schemas.response_dto.user_space_response import (
     GetSpaceResponse,
@@ -28,6 +35,9 @@ from app.schemas.response_dto.user_space_response import (
     GetTodoResponse,
     PostTodoResponse,
     DeleteSpaceResponse,
+    GetBoardResponse,
+    PostBoardResponse,
+    DeleteBoardResponse,
 )
 # 기타 사용자 모듈
 from app.api_spec.user_space_spec import UserSpaceSpec
@@ -135,14 +145,41 @@ async def delete_space_todo(request: Request,
         message="todo data successfully deleted"
     )
 
+# 게시판 확인하기 -> 세션 미들웨어 필요하지 X
+@router.get("/board/{path_user_id}", **(UserSpaceSpec.space_board()))
+async def get_space_board(path_user_id,
+                          user_space_service: UserSpaceService = Depends(get_user_space_service)):
+    get_board_input = GetBoardInput(path_user_id)
+    board_data: GetBoardOutput = await user_space_service.get_board(get_board_input)
 
+    return GetBoardResponse(
+        board_data=board_data
+    )
 
-# 게시판 확인하기
-@router.get("/board", **(UserSpaceSpec.space_board()))
-async def get_space_board():
-    pass
+# 친구, 모르는 유저 공간 게시판에 메모 남기기 -> 세션 필요, path_user_id는 게시판 주인 유저
+@router.post("/board/{path_user_id}", **(UserSpaceSpec.space_board_write()))
+async def post_space_board(request: Request,
+                           path_user_id,
+                           post_input: PostBoardRequest,
+                           user_space_service: UserSpaceService = Depends(get_user_space_service)):
+    user_data = await SessionMiddleware.session_check(request)
+    user_id = user_data.get("_id")
+    user_name = user_data.get("name")
+    post_board_input = PostBoardInput(
+                                        sender_id=user_id,
+                                        sender_name=user_name,
+                                        receiver_id=path_user_id,
+                                        memo=post_input.memo
+                                    )
+    post_board_output: PostBoardOutput = await user_space_service.post_board(post_board_input)
 
-# 친구, 모르는 유저 공간 게시판에 메모 남기기
-@router.post("/board/write", **(UserSpaceSpec.space_board_write()))
-async def post_space_board_write():
-    pass
+    return PostBoardResponse(post_board_output.memo_data)
+
+@router.delete("/board", **(UserSpaceSpec.space_board_delete()))
+async def delete_space_board(request: Request,
+                             user_space_service: UserSpaceService = Depends(get_user_space_service)):
+    user_data = await SessionMiddleware.session_check(request)
+    delete_board_input: DeleteBoardInput = {"receiver_id":user_data.get("_id")}
+    await user_space_service.delete_board(delete_board_input)
+
+    return DeleteBoardResponse(message="board has been cleared")

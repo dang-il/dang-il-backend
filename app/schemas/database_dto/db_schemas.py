@@ -38,13 +38,13 @@ class SessionColl(BaseModel):
 # 사용자 집중 시간 컬렉션   
 class TaskingTime(BaseModel):
     total_time: int
-    task_specific_time: Dict[str, int]
+    task_specific_time: Dict[str, int] # 작업 : 시간 -> 30분, 150분
     
 class UserTaskingTimeColl(BaseModel):
     id: str = Field(default_factory=str, alias="_id")
     today_tasking_time: TaskingTime
-    previous_tasking_time: Dict[Union[str,datetime],TaskingTime]
-
+    previous_tasking_time: Dict[Union[str,datetime], TaskingTime] # 날짜: 그 날 시간
+ 
 # 친구 추가 요청 대기 컬렉션  
 class FriendWaitColl(BaseModel):
     id: Dict[str, str] = Field(..., alias="_id") # {내 아이디, 친구아이디}
@@ -58,12 +58,18 @@ class FurnitureArrange(BaseModel):
     decor_id: str
     location: Tuple[float, float, float]
 
+class BoardInfo(BaseModel):
+    sender_id: str
+    sender_name: str
+    content: str
+    date: datetime # 이거 나중에 ttl 설정으로 삭제하게
+
 class UserSpaceColl(BaseModel):
     id: str = Field(default_factory=str, alias="_id")
     interior_data: List[FurnitureArrange]
     todo_list: List[str] = []
-    board: Dict[str, str] = None
-
+    board: Optional[List[BoardInfo]] = None 
+    music_url: Optional[List[str]] = None
 
 # 장식품 정보 저장 컬렉션
 class DecorColl(BaseModel):

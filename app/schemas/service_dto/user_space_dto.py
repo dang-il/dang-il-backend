@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Union, Tuple, List, Optional
+from typing import Union, Tuple, List, Optional, Dict
 
 class GetUserSpaceInput(BaseModel):
     id: str
@@ -40,3 +40,29 @@ class SaveTodoOutput(BaseModel):
 
 class DeleteTodoInput(BaseModel):
     id: str
+
+class GetBoardInput(BaseModel):
+    id: str
+
+class GetBoardOutput(BaseModel):
+    board_data: list
+
+class PostBoardInput(BaseModel):
+    sender_id: str
+    sender_name: str
+    receiver_id: str
+    memo: str
+
+class Memo(BaseModel):
+    sender_id: str
+    sender_name: str
+    content: str
+
+class PostBoardOutput(BaseModel):
+    memo_data: List[Memo]
+
+class DeleteBoardInput(BaseModel):
+    receiver_id: str
+
+class DeleteBoardOutput(BaseModel):
+    pass

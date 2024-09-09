@@ -21,3 +21,12 @@ class PostTodoResponse(GetTodoResponse):
 
 class DeleteTodoResponse(BaseModel):
     message: str
+
+class GetBoardResponse(BaseModel):
+    board_data: list
+
+class PostBoardResponse(BaseModel):
+    board_data: list
+    
+class DeleteBoardResponse(BaseModel):
+    message: str
