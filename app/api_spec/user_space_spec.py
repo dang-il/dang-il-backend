@@ -245,6 +245,17 @@ class UserSpaceSpec:
                     모든 사람들이 사용 가능
                 """,
             "operation_id": "space_board",
+            "parameters": [
+                {
+                    "name": "path_user_id",
+                    "in": "path",
+                    "required": True,
+                    "description": "글을 작성하는 개인 공간 주인의 id",
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
             "responses": {
                 200: {
                     "description": "해당 유저의 개인 페이지에 작성되어 있는 게시판의 메모들 불러오기",
@@ -255,9 +266,9 @@ class UserSpaceSpec:
                                         "summary": "응답 예시",
                                         "value": {
                                             "board_data": [{
-                                                "sender_id":"", 
-                                                "sender_name": "",
-                                                "content": ""
+                                                "sender_id":"test1", 
+                                                "sender_name": "test1",
+                                                "content": "메모에요"
                                                 }]
                                         }
                                     },
@@ -272,23 +283,100 @@ class UserSpaceSpec:
     @staticmethod
     def space_board_write():
         spec = {
-            "summary": "미완성 엔드포인트",
+            "summary": "타인의 개인 공간에서 작성한 메모를 첨부하는 엔드포인트",
             "description": 
                 """
-                    미구현된 엔드포인트
+                    개인 공간의 게시판 글들을 모두 가져오는 엔드포인트 <br><br> 
+                    무분별한 사용을 막기 위한 session_id 필요 
                 """,
-            "operation_id": "space_board_write"
+            "operation_id": "space_board_write",
+            "parameters": [
+                {
+                    "name": "path_user_id",
+                    "in": "path",
+                    "required": True,
+                    "description": "글을 작성하는 개인 공간 주인의 id",
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "requestBody": {
+                "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "memo": "dict",
+                                    "description": "작성하려는 메모 데이터"
+                                },
+                                "required": ["sender_id", "sender_name", "content"]
+                            },
+                            "examples": {
+                                "요청 예시": {
+                                    "summary": "요청 예시",
+                                    "value": {
+                                        "sender_id": "test1",
+                                        "sender_name": "test1",
+                                        "content": "게시판에 메모로 작성할 글입니다."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+            "responses": {
+                200: {
+                    "description": "해당 유저의 개인 페이지에 작성되어 있는 게시판의 메모들 불러오기(방금 추가한 내용까지)",
+                    "content": {
+                            "application/json": {
+                                "examples": {
+                                    "응답 예시": {
+                                        "summary": "응답 예시",
+                                        "value": {
+                                            "board_data": [{
+                                                "sender_id":"test1", 
+                                                "sender_name": "test1",
+                                                "content": "게시판에 메모로 작성할 글입니다."
+                                            }]
+                                        }
+                                    },
+                                }
+                            }
+                        }
+                    },
+                }
             }
         return spec
     
     @staticmethod
     def space_board_delete():
         spec = {
-            "summary": "미완성 엔드포인트",
+            "summary": "본인 공간 게시판에 붙어있는 메모 전부 제거하는 엔드포인트",
             "description": 
                 """
-                    미구현된 엔드포인트
+                    본인 공간 게시판에 붙어있는 메모를 모두 제거하는 엔드포인트 <br><br> 
+                    본인 확인을 위한 session_id 필요 
                 """,
-            "operation_id": "space_board_write"
+            "operation_id": "space_board_delete",
+            "responses": {
+                200: {
+                    "description": "메모들이 삭제되었음을 나타내는 메시지 반환",
+                    "content": {
+                            "application/json": {
+                                "examples": {
+                                    "응답 예시": {
+                                        "summary": "응답 예시",
+                                        "value": {
+                                            "message": "board has been cleared"
+                                        }
+                                    },
+                                }
+                            }
+                        }
+                    },
+                }
             }
         return spec
+    

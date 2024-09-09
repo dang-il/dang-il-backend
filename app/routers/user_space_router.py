@@ -145,8 +145,6 @@ async def delete_space_todo(request: Request,
         message="todo data successfully deleted"
     )
 
-
-
 # 게시판 확인하기 -> 세션 미들웨어 필요하지 X
 @router.get("/board/{path_user_id}", **(UserSpaceSpec.space_board()))
 async def get_space_board(path_user_id,

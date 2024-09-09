@@ -28,4 +28,11 @@ class PostTodoRequest(BaseModel):
             ]
         )
 class PostBoardRequest(BaseModel):
-    memo: dict
+    memo: dict = Field(...,
+        description="메모 데이터 딕셔너리로 보내기",
+        example={
+            "sender_id": "test1",
+            "sender_name": "test1",
+            "content": "게시판에 작성할 글입니다."
+        }
+    )
