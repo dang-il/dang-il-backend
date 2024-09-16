@@ -1,85 +1,112 @@
 import redis.asyncio as redis
 from typing import Optional, Union, Dict, List
 from bson import ObjectId
+import time
 
 from app.configs.config import Settings, settings
 
+
 class RedisHandler:
     instance = None
-    
-    # 싱글톤 객체 생성을 위한 __new__ 오버라이드
+
     @classmethod
     def __new__(cls, *args, **kwargs):
-        if(cls.instance is None):
+        if (cls.instance is None):
             cls.instance = super(RedisHandler, cls).__new__(cls)
         return cls.instance
-    
-    def __init__(self, redis_settings:Settings=settings, db_setting:Optional[Dict[str,str]]=None)->None:
+
+    def __init__(self, redis_settings: Settings = settings, db_setting: Optional[Dict[str, str]] = None) -> None:
         host = redis_settings.REDIS_HOST
         port = redis_settings.REDIS_PORT
         password = redis_settings.REDIS_PASSWORD
-        
-        if(password is None):
+
+        if (password is None):
             url = f"redis://{host}:{port}"
         else:
             url = f"redis://:{password}@{host}:{port}"
-        
-        if(db_setting is None):
+
+        if (db_setting is None):
             url += "/0"
         else:
             db_name = db_setting.get("db_name")
             url += f"/{db_name}"
 
-        #연결 이상하면 오류내기
         try:
             self.db_conn = redis.from_url(url, decode_responses=True)
         except Exception as e:
             print(f"RedisHandler Error: {e}")
             return False
-        
-        if(db_setting is None):
+
+        if (db_setting is None):
             self.db_schema = None
         else:
             self.db_schema = db_setting.get("db_schema", None)
-        
-    
-    # 연결 해제         
+
     def close(self):
-        if(self.db_conn is not None):
+        if (self.db_conn is not None):
             self.db_conn.close()
-            
+
     def get_redis_conn(self):
         return self.db_conn
-    
-    # Create => insert
-    async def insert(self, documents:Union[Dict[Union[str, ObjectId], str], list[Dict[Union[str, ObjectId], int]]])->bool:
+
+    # 친구 활동중 표시
+    async def update_friend_activity(self, user_id: str, friend_id: str, ttl_seconds: int):
         try:
-            # 하나의 객체만 삽입 -> ObjectId 반환
-            if(type(documents) is dict):
-                # 유효성 검사, 안되면 오류
-                if(self.db_schema is not None):
+            key = f"user_activity:{user_id}"
+            score = time.time() + ttl_seconds
+            await self.db_conn.zadd(key, {friend_id: score})
+        except Exception as e:
+            print(f"RedisHandler Update Friend Activity Error: {e}")
+            return False
+
+    # 활동 중인 친구 목록 불러오ㄱㅣ
+    async def get_active_friends(self, user_id: str) -> Union[List[str], bool]:
+        try:
+            key = f"user_activity:{user_id}"
+            current_time = time.time()
+            active_friends = await self.db_conn.zrangebyscore(key, min=current_time, max='+inf')
+            return active_friends
+        except Exception as e:
+            print(f"RedisHandler Get Active Friends Error: {e}")
+            return False
+
+    # 활동중이지 않은 친구 처리
+    async def logout_inactive_friends(self, user_id: str) -> bool:
+        try:
+            key = f"user_activity:{user_id}"
+            current_time = time.time()
+            await self.db_conn.zremrangebyscore(key, min='-inf', max=current_time)
+            return True
+        except Exception as e:
+            print(f"RedisHandler Logout Inactive Friends Error: {e}")
+            return False
+
+    # Create => insert
+    async def insert(self,
+                     documents: Union[Dict[Union[str, ObjectId], str], list[Dict[Union[str, ObjectId], int]]]) -> bool:
+        try:
+            if (type(documents) is dict):
+                if (self.db_schema is not None):
                     temp_data = self.db_schema(**documents)
                     data = temp_data.dict(by_alias=True)
                 else:
                     data = documents
-                
+
                 key = data.get("_id")
-                value:dict = data
-                
-                if(await self.db_conn.exists(key)):
+                value: dict = data
+
+                if (await self.db_conn.exists(key)):
                     raise ValueError("Already Existing Value")
-                
+
                 result = await self.db_conn.hmset(key, value)
-                
-                if(result == 1):
+
+                if (result == 1):
                     return True
                 else:
                     raise ValueError("Already Existing Value")
-            
-            # 여러 객체 삽입 -> ObjectId 배열 반환
-            elif(type(documents) is list):
-                # 유효성 검사, 안되면 오류
-                if(self.db_schema is not None):
+
+            elif (type(documents) is list):
+                if (self.db_schema is not None):
                     data_list = []
                     for elem in documents:
                         temp_data = self.db_schema(**elem)
@@ -87,73 +114,68 @@ class RedisHandler:
                         data_list.append(data)
                 else:
                     data_list = documents
-                 
-                # 이미 존재하는 값인지 확인, 있으면 오류 발생   
+
                 pipeline = self.db_conn.pipeline()
                 for elem in data_list:
                     key = elem.get("_id")
                     pipeline.exists(key)
                 result = await pipeline.execute()
-                
+
                 check = True
                 for elem in result:
                     check = check and elem
-                if(not check):    
+                if (not check):
                     raise ValueError("Already Existing Value")
-                
+
                 for elem in data_list:
                     key = elem.get("_id")
-                    value:dict = elem
+                    value: dict = elem
                     pipeline.hmset(key, mapping=value)
-                
+
                 result = await pipeline.execute()
-                
+
                 result_status = True
                 for elem in result:
                     result_status = result_status and elem
-                
-                if(result_status):
+
+                if (result_status):
                     return True
                 else:
-                    raise ValueError("Already Existing Value")                   
-            
-        # 오류는 False 반환
+                    raise ValueError("Already Existing Value")
+
         except Exception as e:
             print(f"RedisHandler Insert Error: {e}")
             return False
-    
+
     # Read => select
-    async def select(self, 
-                     keys:Union[Union[str, ObjectId], List[str]],
-                     projection:Optional[Dict[str, int]]=None)->Union[Dict, List[Dict], bool]:
+    async def select(self,
+                     keys: Union[Union[str, ObjectId], List[str]],
+                     projection: Optional[Dict[str, int]] = None) -> Union[Dict, List[Dict], bool]:
         try:
-            # key가 문자열이면 1개 검색
-            if(type(keys) is str or type(keys) is ObjectId):
-                if(projection is None):
+            if (type(keys) is str or type(keys) is ObjectId):
+                if (projection is None):
                     result = await self.db_conn.hgetall(keys)
-                    
-                    # 없으면 오류 반환
-                    if(result is None):
+
+                    if (result is None):
                         raise ValueError("Cannot find data from collection")
                     return result
                 else:
                     projection_list = list(projection.keys())
                     result = await self.db_conn.hmget(keys, *projection_list)
-                    if(result is None):
+                    if (result is None):
                         raise ValueError("Cannot find data from collection")
-                    
+
                     result_dict = {'_id': keys}
                     for i in range(projection_list):
-                        result_dict[projection_list[i]] = result[i]                 
+                        result_dict[projection_list[i]] = result[i]
                     return result_dict
-                    
-            # 여러개 반환, dict 배열
-            elif(type(keys) is list):
+
+            elif (type(keys) is list):
                 pipeline = self.db_conn.pipeline()
-                if(projection is None):
-                    for key in keys:    
+                if (projection is None):
+                    for key in keys:
                         pipeline.hgetall(key)
-                    
+
                     result = await pipeline.execute()
                     return result
                 else:
@@ -167,31 +189,28 @@ class RedisHandler:
                         for idx2 in range(projection_list):
                             result_dict[projection_list[idx2]] = result[idx1][idx2]
                         result_list.append(result_dict)
-                        
+
                     return result_list
-                
-        # 오류는 False 반환
+
         except Exception as e:
             print(f"MongoDBHandler Select Error: {e}")
             return False
-        
-        
-    # update => update // 이거 필드별로 삭제하는 기능도 만들어야함
-    async def update(self, 
-                     keys:Union[Union[str, ObjectId], List[str]],
-                     update:Dict=None)-> bool:
+
+    # update => update
+    async def update(self,
+                     keys: Union[Union[str, ObjectId], List[str]],
+                     update: Dict = None) -> bool:
         try:
-            if(type(keys) is str or type(keys) is ObjectId):
-                if(await self.db_conn.exists(keys)):
+            if (type(keys) is str or type(keys) is ObjectId):
+                if (await self.db_conn.exists(keys)):
                     result = await self.db_conn.hmset(name=keys, mapping=update)
-                    if(result == 0):
+                    if (result == 0):
                         return True
                     else:
-                        raise ValueError("Cannot find data from collection") 
+                        raise ValueError("Cannot find data from collection")
                 else:
-                    raise ValueError("Cannot find data from collection") 
-            elif(type(keys) is list):
-                # 이미 존재하는 값인지 확인, 없으면 오류 발생   
+                    raise ValueError("Cannot find data from collection")
+            elif (type(keys) is list):
                 pipeline = self.db_conn.pipeline()
                 for key in keys:
                     pipeline.exists(key)
@@ -199,32 +218,31 @@ class RedisHandler:
                 check = True
                 for elem in check_result:
                     check = check and elem
-                if(not check):    
+                if (not check):
                     raise ValueError("Already Existing Value")
 
                 for key in keys:
                     pipeline.hmset(name=key, mapping=update)
                 result = await pipeline.execute()
-                
+
                 check = False
                 for elem in result:
                     check = check or bool(elem)
-                    
-                if(check):
+
+                if (check):
                     raise ValueError("Already Existing Value")
                 else:
                     return True
-                
-        # 오류는 False 반환
+
         except Exception as e:
             print(f"RedisHandler Update Error: {e}")
-            return False        
-        
-        
-    # Delete => delete
-    async def delete(self, keys:Union[Union[str, ObjectId], List[str]])->Union[int, bool]:
+            return False
+
+            # Delete => delete
+
+    async def delete(self, keys: Union[Union[str, ObjectId], List[str]]) -> Union[int, bool]:
         try:
-            if(type(keys) is str or type(keys) is ObjectId ):
+            if (type(keys) is str or type(keys) is ObjectId):
                 result = await self.db_conn.delete(keys)
                 return result
             else:
@@ -232,18 +250,22 @@ class RedisHandler:
                 for key in keys:
                     pipeline.delete(key)
                 result_list = await pipeline.execute()
-                
+
                 result = 0
                 for elem in result_list:
                     result += elem
                 return result
-        
-        # 오류는 False 반환
+
         except Exception as e:
             print(f"RedisHandler Delete Error: {e}")
-            return False  
-                
-                
-            
-        
-    
+            return False
+
+    async def delete_session(self, session_id: str) -> bool:
+        try:
+            result = await self.db_conn.delete(session_id)
+            if result == 0:
+                raise ValueError(f"Session with ID {session_id} not found.")
+            return True
+        except Exception as e:
+            print(f"RedisHandler Delete Session Error: {e}")
+            return False

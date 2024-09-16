@@ -146,12 +146,3 @@ async def post_friend_search(post_input: FriendSearchRequest,
             message="search data successfully transported",
             user_data_list=friend_search_data.user_data_list
         )
-    
-
-    
-     
-    
-    
-    
-    
-    

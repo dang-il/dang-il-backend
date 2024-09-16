@@ -162,3 +162,17 @@ class MongoDBHandler:
         except Exception as e:
             print(f"MongoDBHandler Delete Error: {e}")
             return False
+
+    # 로그아웃 user session delete
+    # 주어지 user_id의 세션 데이터 삭제
+    async def delete_user_session(self, user_id: str) -> Union[int, bool]:
+        try:
+            result = await self.db_coll.delete_one({"user_id": user_id})
+            deleted_count = result.deleted_count
+            if deleted_count == 0:
+                raise ValueError("no user_id by given session_id")
+            return deleted_count
+
+        except Exception as e:
+            print(f"MongoDBHandler Delete User Session Error: {e}")
+            return False
