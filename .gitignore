@@ -1,3 +1,5 @@
 .env
 LightsailDefaultKey-ap-northeast-2.pem
+scpToLightsail.bat
+
 __pycache__

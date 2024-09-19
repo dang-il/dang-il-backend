@@ -241,21 +241,11 @@ class UserSpaceSpec:
             "description": 
                 """
                     개인 공간의 게시판 글들을 모두 가져오는 엔드포인트 <br><br> 
+                    경로 파라미터 path_user_id에 글을 작성하는 개인 공간의 주인 user_id를 넣어서 사용 <br><br>
                     세션 id 필요하지 않음 <br><br>
                     모든 사람들이 사용 가능
                 """,
             "operation_id": "space_board",
-            "parameters": [
-                {
-                    "name": "path_user_id",
-                    "in": "path",
-                    "required": True,
-                    "description": "글을 작성하는 개인 공간 주인의 id",
-                    "schema": {
-                        "type": "string"
-                    }
-                }
-            ],
             "responses": {
                 200: {
                     "description": "해당 유저의 개인 페이지에 작성되어 있는 게시판의 메모들 불러오기",
@@ -287,20 +277,21 @@ class UserSpaceSpec:
             "description": 
                 """
                     개인 공간의 게시판 글들을 모두 가져오는 엔드포인트 <br><br> 
+                    경로  파라미터 path_user_id에 글을 작성하는 개인 공간의 주인 user_id를 넣어서 사용 <br><br>
                     무분별한 사용을 막기 위한 session_id 필요 
                 """,
             "operation_id": "space_board_write",
-            "parameters": [
-                {
-                    "name": "path_user_id",
-                    "in": "path",
-                    "required": True,
-                    "description": "글을 작성하는 개인 공간 주인의 id",
-                    "schema": {
-                        "type": "string"
-                    }
-                }
-            ],
+            # "parameters": [
+            #     {
+            #         "name": "path_user_id",
+            #         "in": "path",
+            #         "required": True,
+            #         "description": "글을 작성하는 개인 공간 주인의 id",
+            #         "schema": {
+            #             "type": "string"
+            #         }
+            #     }
+            # ],
             "requestBody": {
                 "required": True,
                     "content": {
