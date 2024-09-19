@@ -13,7 +13,6 @@ class UserColl(BaseModel):
     5. 접근 가능
     
     6. 친구 리스트 -> 필수X
-    7. 작업 -> 필수X -> tasks에 아이디 담아서 (이름, 책id) 
     """
     id: str = Field(default_factory=str, alias="_id")
     name: str
@@ -22,7 +21,7 @@ class UserColl(BaseModel):
     accessibility: bool = False
     
     friend_list: Optional[List[str]] = None
-    tasks: Optional[List[Tuple[str, str]]] = None
+    
 
 # 세션 정보 컬렉션+캐시
 class SessionColl(BaseModel):
@@ -65,11 +64,20 @@ class BoardInfo(BaseModel):
     date: datetime # 이거 나중에 ttl 설정으로 삭제하게
 
 class UserSpaceColl(BaseModel):
+    """
+    1. userid와 동일
+    2. interior_data => 공간의 인테리어 데이터 
+    3. todo_list => 할일 적는 공간 -> 쓸지는 미지수
+    4. board => 친구들이 게시물 적는 공간
+    5. music_url => 음악 리스트 담는 공간
+    6. book_list => 책 공간
+    """
     id: str = Field(default_factory=str, alias="_id")
     interior_data: List[FurnitureArrange]
     todo_list: List[str] = []
     board: Optional[List[BoardInfo]] = None 
     music_url: Optional[List[str]] = None
+    book_list: Optional[List[Tuple[str, str]]] = None
 
 # 장식품 정보 저장 컬렉션
 class DecorColl(BaseModel):
@@ -81,9 +89,21 @@ class DecorColl(BaseModel):
 
 
 # 책 내부 내용 정보 저장 -> 이거 변동 있으므로 스키마 러프하게 잡기
-# id는 user_id와 동일하게 잡기
+# id는 user_id와 동일하지 않음
 class TaskingNoteColl(BaseModel):
-    id:str = Field(default_factory=str, alias="_id")
+    """
+    1. note의 id -> 이건 user_coll에서 들고 있음
+    2. note의 제목(이것도 user_coll에서 들고 있음)
+    3. ntoe_description => 안써도 됨
+    4. page_count -> 총 페이지 수
+    5. text -> {페이지: 내용}
+    6. image -> {{image파일} : 내용}
+    7. file -> {{파일} : 내용}
+    """
+    note_id:str = Field(default_factory=str, alias="_id")
+    note_title: str
+    note_description: Optional[str]
+    page_count: int = 0
     text: dict = {}
     image: dict = {}
     file: dict = {}
