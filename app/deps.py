@@ -3,7 +3,7 @@ from app.utils.db_handlers.mongodb_handler import MongoDBHandler
 from app.utils.db_handlers.redis_handler import RedisHandler
 from app.utils.etc.server_sent_event import UserQueue
 from app.utils.db_handlers.set_mongodb_ttl import set_mongodb_ttl
-from app.schemas.database_dto.db_schemas import UserColl, SessionColl, UserSpaceColl, UserTaskingTimeColl, FriendWaitColl, DecorColl
+from app.schemas.database_dto.db_schemas import UserColl, SessionColl, UserSpaceColl, UserTaskingTimeColl, FriendWaitColl, DecorColl, TaskingNoteColl
 from fastapi import Request, HTTPException, Depends, status
 
 ## 로그아웃 관련
@@ -100,6 +100,13 @@ def get_video_coll() -> MongoDBHandler:
     return MongoDBHandler(db_settings={
         "db_name": "video_db",
         "coll_name": "video_coll",
+    })
+
+def get_taskingnote_coll() -> MongoDBHandler:
+    return MongoDBHandler(db_settings={
+        "db_name": "artisticsw_db",
+        "coll_name": "decor_coll",
+        "db_schema": TaskingNoteColl
     })
 
 # def get_decor_coll() -> MongoDBHandler:

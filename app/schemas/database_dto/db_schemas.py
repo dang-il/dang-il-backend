@@ -13,7 +13,7 @@ class UserColl(BaseModel):
     5. 접근 가능
     
     6. 친구 리스트 -> 필수X
-    7. 작업 -> 필수X
+    7. 작업 -> 필수X -> tasks에 아이디 담아서 (이름, 책id) 
     """
     id: str = Field(default_factory=str, alias="_id")
     name: str
@@ -22,7 +22,7 @@ class UserColl(BaseModel):
     accessibility: bool = False
     
     friend_list: Optional[List[str]] = None
-    tasks: Optional[List[str]] = None
+    tasks: Optional[List[Tuple[str, str]]] = None
 
 # 세션 정보 컬렉션+캐시
 class SessionColl(BaseModel):
@@ -78,6 +78,15 @@ class DecorColl(BaseModel):
     decor_size: Tuple[float, float, float]
     decor_cost: int
     decor_etc: dict
+
+
+# 책 내부 내용 정보 저장 -> 이거 변동 있으므로 스키마 러프하게 잡기
+# id는 user_id와 동일하게 잡기
+class TaskingNoteColl(BaseModel):
+    id:str = Field(default_factory=str, alias="_id")
+    text: dict = {}
+    image: dict = {}
+    file: dict = {}
     
 
     
