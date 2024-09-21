@@ -6,7 +6,6 @@ sys.path.append(os.getenv("BACKEND_PATH"))
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import json
 
 # 기존 라우터, 서브앱
 from routers.auth_router import router as auth_router

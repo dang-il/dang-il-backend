@@ -114,8 +114,36 @@ class AuthSpec:
         return spec
 
     @staticmethod
-    def auth_google_logout():
+    def auth_logout():
         spec = {
-            "summary": "미완성 api"
+            "summary": "로그아웃 엔드포인트",
+            "description": 
+                """
+                    로그아웃을 처리하는 엔드포인트로, 세션 삭제, 쿠키 삭제, Redis 및 MongoDB에서의 사용자 정보 삭제를 수행합니다. <br><br>
+                    로그아웃 성공 시 메인페이지로 리다이렉트됩니다.
+                """,
+            "operation_id": "auth_logout",
+            "responses": {
+                200: {
+                    "description": "로그아웃 성공 응답",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                                "message": "Logout successful"
+                            }
+                        }
+                    }
+                },
+                401: {
+                    "description": "세션이 유효하지 않거나 이미 로그아웃된 상태",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                                "detail": "Unauthorized"
+                            }
+                        }
+                    }
+                }
+            }
         }
         return spec
