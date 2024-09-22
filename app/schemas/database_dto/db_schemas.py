@@ -70,14 +70,14 @@ class UserSpaceColl(BaseModel):
     3. todo_list => 할일 적는 공간 -> 쓸지는 미지수
     4. board => 친구들이 게시물 적는 공간
     5. music_url => 음악 리스트 담는 공간
-    6. book_list => 책 공간
+    6. book_list => 책 공간 -> {note_id: note_id, note_title: title}
     """
     id: str = Field(default_factory=str, alias="_id")
     interior_data: List[FurnitureArrange]
     todo_list: List[str] = []
     board: Optional[List[BoardInfo]] = None 
     music_url: Optional[List[str]] = None
-    book_list: Optional[List[Tuple[str, str]]] = None
+    book_list: Optional[List[Dict[str, str]]] = None
 
 # 장식품 정보 저장 컬렉션
 class DecorColl(BaseModel):
@@ -102,9 +102,9 @@ class TaskingNoteColl(BaseModel):
     """
     note_id:str = Field(default_factory=str, alias="_id")
     note_title: str
-    note_description: Optional[str]
+    note_description: Optional[str] = ""
     page_count: int = 0
-    text: dict = {}
+    text: dict = {} ## 텍스트, 이미지, 파일 모두 리스트+인덱스 조합이 맞는 듯 싶음
     image: dict = {}
     file: dict = {}
     
