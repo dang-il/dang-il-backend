@@ -56,6 +56,7 @@ class FriendWaitColl(BaseModel):
 class FurnitureArrange(BaseModel):
     decor_id: str
     location: Tuple[float, float, float]
+    memo_text: str = ""
 
 class BoardInfo(BaseModel):
     sender_id: str
