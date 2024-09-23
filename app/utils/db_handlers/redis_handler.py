@@ -1,10 +1,10 @@
+# redis_handler.py
 import redis.asyncio as redis
 from typing import Optional, Union, Dict, List
 from bson import ObjectId
 import time
 
 from app.configs.config import Settings, settings
-
 
 class RedisHandler:
     instance = None
@@ -59,7 +59,7 @@ class RedisHandler:
             print(f"RedisHandler Update Friend Activity Error: {e}")
             return False
 
-    # 활동 중인 친구 목록 불러오ㄱㅣ
+    # 활동 중인 친구 목록 불러오기
     async def get_active_friends(self, user_id: str) -> Union[List[str], bool]:
         try:
             key = f"user_activity:{user_id}"
@@ -238,8 +238,7 @@ class RedisHandler:
             print(f"RedisHandler Update Error: {e}")
             return False
 
-            # Delete => delete
-
+    # Delete => delete
     async def delete(self, keys: Union[Union[str, ObjectId], List[str]]) -> Union[int, bool]:
         try:
             if (type(keys) is str or type(keys) is ObjectId):
@@ -260,6 +259,7 @@ class RedisHandler:
             print(f"RedisHandler Delete Error: {e}")
             return False
 
+    # 로그아웃시 사용자 세션 삭제
     async def delete_session(self, session_id: str) -> bool:
         try:
             result = await self.db_conn.delete(session_id)
