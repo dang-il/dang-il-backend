@@ -63,6 +63,7 @@ class BoardInfo(BaseModel):
     sender_name: str
     content: str
     date: datetime # 이거 나중에 ttl 설정으로 삭제하게
+    
 
 class UserSpaceColl(BaseModel):
     id: str = Field(default_factory=str, alias="_id")
@@ -70,6 +71,7 @@ class UserSpaceColl(BaseModel):
     todo_list: List[str] = []
     board: Optional[List[BoardInfo]] = None 
     music_url: Optional[List[str]] = None
+    light_color: Literal[0, 1, 2, 3] = 0
 
 # 장식품 정보 저장 컬렉션
 class DecorColl(BaseModel):
