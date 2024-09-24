@@ -105,13 +105,10 @@ class MongoDBHandler:
                 result_list = []
                 async for document in cursor:
                     result_list.append(document)
-                print('너니?')
+                    
                 # 없으면 오류 반환
                 if(result_list == []):
-                    print("너니2")
                     raise ValueError("Cannot find data from collection")
-                print("너니3")
-                print(result_list)
 
                 return result_list
 
