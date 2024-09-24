@@ -15,4 +15,4 @@ class FriendSearchData(BaseModel):
 
 class FriendSearchResponse(BaseModel):
     message: str
-    user_data_list: List[FriendSearchData]
+    user_data_list: list

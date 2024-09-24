@@ -11,6 +11,7 @@ from app.schemas.service_dto.friend_dto import (
     FriendApplyResOutput,
     FriendSearchInput,
     FriendSearchOutput,
+    FriendSearchData,
 )
 # 기타 사용자 모듈
 from app.services.abs_service import AbsService
@@ -109,29 +110,39 @@ class FriendService(AbsService):
         search_word = input.search_word
         
         # 작업 생성 -> 이름검색, 태그 검색
+        print("작업1")
         name_search_task = create_task(user_coll.select({"name": search_word}, {"_id": 1, "name": 1, "tag": 1}))
         tag_search_task = create_task(user_coll.select({"tag": search_word}, {"_id": 1, "name": 1, "tag": 1}))
-        
         name_search_data = await name_search_task
         tag_search_data = await tag_search_task
+        print("작업2")
+        if(not name_search_data):
+            name_search_data = []
+        if(not tag_search_data):
+            tag_search_data = []
+        merged_search_data = name_search_data + tag_search_data
+        print("작업3")
+        print(merged_search_data)
+        result_list = []
+        for elem in merged_search_data:
+            result_list.append(
+                FriendSearchData(
+                    id=elem.get("_id"),
+                    name=elem.get("name"),
+                    tag=elem.get("tag")
+                )
+            )
         
-        # 존재하지 않는 정보인 경우
-        if(not(name_search_data or tag_search_data)):
-            return FriendSearchOutput(exist_status=False)
-        elif(name_search_data and not tag_search_data): # 이름 데이터만 존재
+        # 존재하지 않는 경우
+        if(merged_search_data == []):
             return FriendSearchOutput(
-                exist_status=True,
-                user_data_list=name_search_data
+                exist_status=False,
+                user_data_list=[]
             )
-        elif(not name_search_data and tag_search_data): # 태그 데이터만 존재
+        else:
             return FriendSearchOutput(
                 exist_status=True,
-                user_data_list=tag_search_data
-            )
-        else: # 모두 존재
-            return FriendSearchOutput(
-                exist_status=True,
-                user_data_list=tag_search_data+name_search_data
+                user_data_list=result_list
             )
             
             

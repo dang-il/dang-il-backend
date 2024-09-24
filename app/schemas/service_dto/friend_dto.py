@@ -27,5 +27,5 @@ class FriendSearchData(BaseModel):
 
 class FriendSearchOutput(BaseModel):
     exist_status: bool
-    user_data_list: Optional[List[FriendSearchData]] = None
+    user_data_list: List[FriendSearchData]
     
