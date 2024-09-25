@@ -6,4 +6,6 @@ class AuthCallbackResponse(BaseModel):
     action_type: str
     name: str
     
-    
+
+class AuthLogoutResponse(BaseModel):
+    message:str

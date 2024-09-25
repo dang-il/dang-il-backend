@@ -34,7 +34,7 @@ class SessionColl(BaseModel):
     identifier: str
     created_at: Union[datetime, str]
 
-# 사용자 집중 시간 컬렉션   
+# 사용자 집중 시간 컬렉션   => 이 부분 수정
 class TaskingTime(BaseModel):
     total_time: int
     task_specific_time: Dict[str, int] # 작업 : 시간 -> 30분, 150분
@@ -44,7 +44,7 @@ class UserTaskingTimeColl(BaseModel):
     today_tasking_time: TaskingTime
     previous_tasking_time: Dict[Union[str,datetime], TaskingTime] # 날짜: 그 날 시간
  
-# 친구 추가 요청 대기 컬렉션  
+# 친구 추가 요청 대기 컬렉션  ㅌ
 class FriendWaitColl(BaseModel):
     id: Dict[str, str] = Field(..., alias="_id") # {내 아이디, 친구아이디}
     sender_id: str
