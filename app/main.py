@@ -32,6 +32,7 @@ app.add_middleware(
 )
 
 # 기존 라우터 등록
+app.include_router(auth_router, prefix="/auth", tags=["Auth"])
 app.include_router(auth_router, prefix="/auth", tags=["login"])
 app.include_router(mainpage_router, prefix="/mainpage", tags=["mainpage"])
 app.include_router(guestmode_router, prefix="/guestmode", tags=["guestmode"])
