@@ -7,6 +7,9 @@ router = APIRouter()
 
 @router.post("/video/save", response_model=YouTubeResponse)
 async def save_video_id(request: YouTubeRequest, service: YouTubeService = Depends()):
+    # 기존 video_id 삭제
+    service.delete_video_id(video_id)
+    # 새로운 video_id 저장
     video_id = request.video_id
     if not video_id:
         raise HTTPException(status_code=400, detail="video_id required")
