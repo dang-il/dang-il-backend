@@ -105,7 +105,7 @@ def get_video_coll() -> MongoDBHandler:
 def get_taskingnote_coll() -> MongoDBHandler:
     return MongoDBHandler(db_settings={
         "db_name": "artisticsw_db",
-        "coll_name": "decor_coll",
+        "coll_name": "tasking_note_coll",
         "db_schema": TaskingNoteColl
     })
 

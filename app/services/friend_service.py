@@ -12,6 +12,7 @@ from app.schemas.service_dto.friend_dto import (
     FriendSearchInput,
     FriendSearchOutput,
     FriendSearchData,
+    FriendFriendSearchInput,
 )
 # 기타 사용자 모듈
 from app.services.abs_service import AbsService
@@ -66,7 +67,7 @@ class FriendService(AbsService):
     @staticmethod
     async def friend_apply_response(input: FriendApplyResInput,
                                     user_coll: MongoDBHandler = get_user_coll(),
-                                    friend_wait_coll: MongoDBHandler = get_friend_wait_coll())->FriendApplyOutput:
+                                    friend_wait_coll: MongoDBHandler = get_friend_wait_coll())->FriendApplyResOutput:
         sender_id = input.sender_id
         receiver_id = input.receiver_id
         
@@ -90,17 +91,22 @@ class FriendService(AbsService):
                     "friend_list": sender_id
                 }}))
                 await gather(sender_friend_list_task, receiver_friend_list_task)
+
+                friend_list = await user_coll.select({"_id": receiver_id})
+                friend_list = friend_list.get("friend_list")
                 
                 return FriendApplyResOutput(
                     consent_status=True,
                     sender_id=sender_id,
-                    receiver_id=receiver_id
+                    receiver_id=receiver_id,
+                    receiver_friendlist=friend_list
                 )
             else: # 거절
                 return FriendApplyResOutput(
                     consent_status=False,
                     sender_id=sender_id,
-                    receiver_id=receiver_id
+                    receiver_id=receiver_id,
+                    receiver_friendlist=[]
                 )
     
     # 추후 일부 단어 or 초성검사 하도록 수정
@@ -110,19 +116,17 @@ class FriendService(AbsService):
         search_word = input.search_word
         
         # 작업 생성 -> 이름검색, 태그 검색
-        print("작업1")
         name_search_task = create_task(user_coll.select({"name": search_word}, {"_id": 1, "name": 1, "tag": 1}))
         tag_search_task = create_task(user_coll.select({"tag": search_word}, {"_id": 1, "name": 1, "tag": 1}))
         name_search_data = await name_search_task
         tag_search_data = await tag_search_task
-        print("작업2")
+        
         if(not name_search_data):
             name_search_data = []
         if(not tag_search_data):
             tag_search_data = []
         merged_search_data = name_search_data + tag_search_data
-        print("작업3")
-        print(merged_search_data)
+        
         result_list = []
         for elem in merged_search_data:
             result_list.append(
@@ -144,7 +148,48 @@ class FriendService(AbsService):
                 exist_status=True,
                 user_data_list=result_list
             )
-            
+    
+    # 추후 일부 단어 or 초성검사 하도록 수정
+    @staticmethod
+    async def friend_friendsearch(input: FriendFriendSearchInput,
+                            user_coll: MongoDBHandler = get_user_coll())->FriendSearchOutput:
+        friend_list = input.friend_list
+        search_word = input.search_word
+        
+        # 작업 생성 -> 이름검색, 태그 검색
+        name_search_task = create_task(user_coll.select({"name": search_word}, {"_id": 1, "name": 1, "tag": 1}))
+        tag_search_task = create_task(user_coll.select({"tag": search_word}, {"_id": 1, "name": 1, "tag": 1}))
+        name_search_data = await name_search_task
+        tag_search_data = await tag_search_task
+        
+        if(not name_search_data):
+            name_search_data = []
+        if(not tag_search_data):
+            tag_search_data = []
+        merged_search_data = name_search_data + tag_search_data
+        print(merged_search_data)
+        result_list = []
+        for elem in merged_search_data:
+            if(elem.get("_id") in friend_list):
+                result_list.append(
+                    FriendSearchData(
+                        id=elem.get("_id"),
+                        name=elem.get("name"),
+                        tag=elem.get("tag")
+                    )
+                )
+        
+        # 존재하지 않는 경우
+        if(merged_search_data == []):
+            return FriendSearchOutput(
+                exist_status=False,
+                user_data_list=[]
+            )
+        else:
+            return FriendSearchOutput(
+                exist_status=True,
+                user_data_list=result_list
+            )
             
 
 def get_friend_service():

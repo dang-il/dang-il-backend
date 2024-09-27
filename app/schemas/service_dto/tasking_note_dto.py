@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, Dict, IO
+from typing import Optional, Dict, IO, Any
 from bson.binary import Binary
 
 class CreateNoteInputDto(BaseModel):
@@ -7,48 +7,84 @@ class CreateNoteInputDto(BaseModel):
     note_title: str
     note_description: Optional[str]
 
-class CreateNoteOuputDto(BaseModel):
-    note_id: str
+class CreateNoteOutputDto(BaseModel):
+    user_id: str
     note_title: str
+    note_description: Optional[str]
 
 class UpdateNoteInputDto(BaseModel):
     user_id: str
-    note_id: str
     note_title: str
+    new_note_title: str
     note_description: str
 
 class UpdateNoteOutputDto(BaseModel):
-    note_id: str
+    user_id: str
     note_title: str
     note_description: str
 
 class DeleteNoteInputDto(BaseModel):
     user_id: str
-    note_id: str
+    note_title: str
 
 class WritePageInputDto(BaseModel):
-    note_id: str
-    note_page: str
+    user_id: str
+    note_title: str
+    note_page: int
     note_text: str
-    note_image: Optional[Dict[str, Binary]] # 이미지 id : 이미지
-    note_file: Optional[Dict[str, IO]] # 파일id : 파일
+    note_image: Optional[Dict[str, Any]] # 이미지 번호 : 이미지
+    note_file: Optional[Dict[str, Any]] # 파일 번호 : 파일
 
-class WritePageOutputDto(WritePageInputDto):
-    pass
+class WritePageOutputDto(BaseModel):
+    user_id: str
+    note_title: str
+    note_page: int
 
-class WriteTextInputDto(BaseModel):
-    note_id: str
-    note_page: str
-    note_text: str
+class OpenBookInputDto(BaseModel):
+    user_id: str
+    note_title: str
 
-class WriteTextOutputDto(WriteTextInputDto):
-    note_image: Optional[Dict[str, Binary]] = None # 이미지 id : 이미지
-    note_file: Optional[Dict[str, IO]] = None # 파일id : 파일
+class OpenBookOutputDto(BaseModel):
+    user_id: str
+    note_title: str
+    note_description: str
+    page_count: int
+    page_text: str
 
 class GetTextInputDto(BaseModel):
-    note_id: str
+    user_id: str
+    note_title: str
+    note_page: int
 
-class GetTextOuputDto(BaseModel):
-    note_id: str
-    note_text: str
+class GetTextOutputDto(BaseModel):
+    user_id: str
+    note_title: str
+    note_page: int
+    page_text: str
 
+class GetImageInputDto(BaseModel):
+    user_id: str
+    note_title: str
+    note_page: int
+
+class GetImageOutputDto(BaseModel):
+    user_id: str
+    note_title: str
+    note_page: int
+    page_image: Optional[Dict[str, Any]]
+
+class GetFileInputDto(BaseModel):
+    user_id: str
+    note_title: str
+    note_page: int
+
+class GetFileOutputDto(BaseModel):
+    user_id: str
+    note_title: str
+    note_page: int
+    page_file: Optional[Dict[str, Any]]
+
+class DeletePageInput(BaseModel):
+    user_id: str
+    note_title: str
+    note_page: int
