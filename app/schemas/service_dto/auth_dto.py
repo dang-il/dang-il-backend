@@ -8,7 +8,6 @@ class AuthCallbackOutput(BaseModel):
     id: str = Field(..., alias="_id")
     name: str
     email: str
-    profile_image: Optional[str] = None
     
 class AuthRegisterInput(AuthCallbackOutput):
     pass

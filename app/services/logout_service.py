@@ -1,57 +1,60 @@
 # logout_service.py
-import requests
-from fastapi import Request, Response, HTTPException, status
-from typing import Optional
-from app.utils.db_handlers.mongodb_handler import MongoDBHandler
-from app.utils.db_handlers.redis_handler import RedisHandler
-from app.deps import get_session_coll, get_session_cache
 
+from fastapi import Depends, HTTPException, status, Request, Response
+from app.deps import get_user_coll, get_session_cache, get_session_coll
+from app.utils.db_handlers.redis_handler import RedisHandler
+from app.utils.db_handlers.mongodb_handler import MongoDBHandler
+from app.schemas.response_dto.auth_response import AuthLogoutResponse
+import requests
 
 class LogoutService:
     def __init__(self, 
-                 session_coll: Optional[MongoDBHandler] = None,
-                 session_cache: Optional[RedisHandler] = None):
-        self.session_coll = session_coll if session_coll else get_session_coll()
-        self.session_cache = session_cache if session_cache else get_session_cache()
+                 user_coll: MongoDBHandler = Depends(get_user_coll), 
+                 session_cache: RedisHandler = Depends(get_session_cache),
+                 session_coll: MongoDBHandler = Depends(get_session_coll)):
+        self.user_coll = user_coll
+        self.session_cache = session_cache
+        self.session_coll = session_coll
 
-    async def logout(self, request: Request, response: Response) -> dict:
-        # 쿠키에서 세션 id를 가져옴
+    async def logout(self, request: Request, response: Response) -> AuthLogoutResponse:
+        # 쿠키에서 세션 ID를 가져옴
         session_id = request.cookies.get("session_id")
         if not session_id:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="No session_id in cookie")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session ID not found")
 
-        # redis, mongoDB에서 세션 조회
-        session_data = await self.session_cache.select(session_id)
-        if not session_data:
-            session_data = await self.session_coll.select({"_id": session_id})
-            if not session_data:
-                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid session")
+        # Redis에서 세션 정보 삭제
+        redis_result = await self.session_cache.delete_session(session_id)
+        if not redis_result:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to delete Redis session")
 
-        user_identifier = session_data.get("identifier")
-        
-        # redis와 mongoDB에서 세션 삭제
-        await self.session_cache.delete(session_id)
-        await self.session_coll.delete({"_id": session_id})
+        # MongoDB에서 세션 정보 삭제
+        mongodb_result = await self.session_coll.delete({"_id": session_id})
+        if not mongodb_result:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to delete MongoDB session")
 
-        # 구글 로그아웃 처리
-        if session_data.get("provider") == "google":
-            self.google_logout(request)
-
-        # 카카오 로그아웃 처리
-        elif session_data.get("provider") == "kakao":
-            self.kakao_logout(request)
+        # 구글/카카오 세션 로그아웃 처리
+        self.revoke_social_session(request)
 
         # 쿠키 삭제
         response.delete_cookie(key="session_id")
 
-        return {"message": "Logout successful"}
+        return AuthLogoutResponse(message="Successfully logged out")
+
+    def revoke_social_session(self, request: Request):
+        # 구글 로그아웃 처리
+        self.google_logout(request)
+        
+        # 카카오 로그아웃 처리
+        self.kakao_logout(request)
 
     def google_logout(self, request: Request):
+        # 구글 액세스 토큰 무효화
         token = request.cookies.get("access_token")
         if token:
             requests.get(f"https://accounts.google.com/o/oauth2/revoke?token={token}")
 
     def kakao_logout(self, request: Request):
+        # 카카오 액세스 토큰 무효화
         token = request.cookies.get("access_token")
         if token:
             headers = {
@@ -60,5 +63,6 @@ class LogoutService:
             requests.post("https://kapi.kakao.com/v1/user/logout", headers=headers)
 
 
+# 의존성 주입 함수
 def get_logout_service() -> LogoutService:
     return LogoutService()

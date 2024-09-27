@@ -67,7 +67,6 @@ class AuthService(AbsService):
         user_data = user_response.json()
         user_data["_id"] = user_data.pop("id")
 
-        user_profile_image_url = user_data.get("picture")
         
         return AuthCallbackOutput(**user_data)
     
@@ -113,8 +112,6 @@ class AuthService(AbsService):
             "email": str(user_json.get("kakao_account").get("email")),
         }
         print("cheking:", user_data)
-
-        user_profile_image_url = user_json.get("properties").get("profile_image")
         
         return AuthCallbackOutput(**user_data)
     

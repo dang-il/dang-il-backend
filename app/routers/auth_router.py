@@ -1,5 +1,3 @@
-# auth_router.py
-
 # 라이브러리 및 모듈 임포트
 from fastapi import APIRouter, Depends, Request, Response
 from fastapi.responses import RedirectResponse
@@ -26,7 +24,8 @@ from app.schemas.request_dto.auth_request import (
     AuthCallbackRequest
 )
 from app.schemas.response_dto.auth_response import (
-    AuthCallbackResponse
+    AuthCallbackResponse,
+    AuthLogoutResponse
 )
 # 기타 사용자 모듈
 from app.configs.config import settings
@@ -156,7 +155,7 @@ async def auth_kakao_callback(post_input: AuthCallbackRequest,
         name=user_data.name,
     )
 
-# 로그아웃
-@router.post("/logout", **(AuthSpec.auth_logout()))
-async def logout(request: Request, response: Response, logout_service: LogoutService = Depends(get_logout_service)):
-    return await logout_service.logout(request, response)
+#로그아웃
+@router.post("/logout", response_model=AuthLogoutResponse, **(AuthSpec.auth_logout()))
+async def auth_logout(request: Request, response: Response, auth_service: AuthService = Depends(get_auth_service)):
+    return await auth_service.logout(request, response)
