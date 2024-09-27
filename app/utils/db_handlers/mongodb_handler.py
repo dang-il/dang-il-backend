@@ -1,4 +1,5 @@
-# mongodb_handler.py
+# app/utils/db_handlers/mongodb_handler.py
+
 from motor.motor_asyncio import AsyncIOMotorClient
 from typing import Optional, Union, Dict, List
 from bson import ObjectId
@@ -117,11 +118,30 @@ class MongoDBHandler:
             print(f"MongoDBHandler Select Error: {e}")
             return False
 
-    # update => update
+    # Update => update
     async def update(self, 
                      filter:Dict={},
                      update:Dict=None)->Union[int, bool]:
         try:
+            # 기존 update 메소드는 주로 필드 업데이트에 사용됩니다.
+            # 여기서는 기존 _id를 새 _id로 변경하는 로직을 추가합니다.
+
+            if "_id" in filter and "_id" in update:
+                old_id = filter["_id"]
+                new_id = update["_id"]
+                
+                # 새 문서 생성
+                existing_document = await self.db_coll.find_one({"_id": old_id})
+                if existing_document is None:
+                    raise ValueError("Cannot find data from collection")
+                
+                existing_document["_id"] = new_id
+                await self.db_coll.insert_one(existing_document)
+                
+                # 기존 문서 삭제
+                result = await self.db_coll.delete_one({"_id": old_id})
+                return result.deleted_count
+
             # _id 기준으로 검색 시 1개 수정, dict
             if(filter.get("_id", None) is not None):
                 result = await self.db_coll.update_one(filter, update)
@@ -169,16 +189,4 @@ class MongoDBHandler:
 
         except Exception as e:
             print(f"MongoDBHandler Delete User Session Error: {e}")
-            return False
-
-    # 프로필 이미지 업데이트
-    async def update_user_profile_image(self, user_id: str, profile_image_url: str) -> bool:
-        try:
-            update_result = await self.update(
-                {"_id": user_id},
-                {"$set": {"profile_image_url": profile_image_url}}
-            )
-            return update_result > 0
-        except Exception as e:
-            print(f"MongoDBHandler Update Profile Image Error: {e}")
             return False
