@@ -170,3 +170,15 @@ class MongoDBHandler:
         except Exception as e:
             print(f"MongoDBHandler Delete User Session Error: {e}")
             return False
+
+    # 프로필 이미지 업데이트
+    async def update_user_profile_image(self, user_id: str, profile_image_url: str) -> bool:
+        try:
+            update_result = await self.update(
+                {"_id": user_id},
+                {"$set": {"profile_image_url": profile_image_url}}
+            )
+            return update_result > 0
+        except Exception as e:
+            print(f"MongoDBHandler Update Profile Image Error: {e}")
+            return False

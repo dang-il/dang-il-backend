@@ -62,11 +62,17 @@ async def auth_google_callback(post_input: AuthCallbackRequest,
     user_data: AuthCallbackOutput = await auth_service.google_callback(google_callback_input)
 
     # 기존에 존재하는 유저이면 로그인, 아니면 회원가입
-    if (await user_coll.select({"_id": user_data.id}) == False):
+    existing_user = await user_coll.select({"_id": user_data.id})
+    if existing_user == False:
         register_login_result: AuthRegisterOutput = await auth_service.register(user_data)
         response_message = "register process is complete"
         response_action_type = "register"
     else:
+        if existing_user.get("profile_image_url") != user_data.profile_image_url:
+            await user_coll.update(
+                {"_id": user_data.id},
+                {"$set": {"profile_image_url": user_data.profile_image_url}}
+            )
         login_input = AuthLoginInput(
             _id=user_data.id,
             name=user_data.name,
@@ -92,6 +98,7 @@ async def auth_google_callback(post_input: AuthCallbackRequest,
         message=response_message,
         action_type=response_action_type,
         name=user_data.name,
+        profile_image_url=user_data.profile_image_url
     )
 
 # 카카오 로그인
@@ -122,11 +129,17 @@ async def auth_kakao_callback(post_input: AuthCallbackRequest,
     user_data: AuthCallbackOutput = await auth_service.kakao_callback(kakao_callback_input)
 
     # 기존에 존재하는 유저이면 로그인, 아니면 회원가입
-    if (await user_coll.select({"_id": user_data.id}) == False):
+    existing_user = await user_coll.select({"_id": user_data.id})
+    if existing_user == False:
         register_login_result: AuthRegisterOutput = await auth_service.register(user_data)
         response_message = "register process is complete"
         response_action_type = "register"
     else:
+        if existing_user.get("profile_image_url") != user_data.profile_image_url:
+            await user_coll.update(
+                {"_id": user_data.id},
+                {"$set": {"profile_image_url": user_data.profile_image_url}}
+            )
         login_input = AuthLoginInput(
             _id=user_data.id,
             name=user_data.name,
@@ -153,6 +166,7 @@ async def auth_kakao_callback(post_input: AuthCallbackRequest,
         message=response_message,
         action_type=response_action_type,
         name=user_data.name,
+        profile_image_url=user_data.profile_image_url
     )
 
 #로그아웃
