@@ -110,6 +110,3 @@ class TaskingNoteColl(BaseModel):
     image: dict = {}
     file: dict = {}
     
-
-    
-    
