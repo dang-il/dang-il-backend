@@ -5,22 +5,20 @@ from fastapi.exceptions import HTTPException
 from datetime import datetime, timezone, timedelta
 # dto
 from app.schemas.service_dto.user_space_dto import (
-    GetUserSpaceInput, 
-    GetUserSpaceOutput,
-    SaveInteriorDataInput,
-    SaveInteriorDataOutput,
+    GetUserSpaceInput, GetUserSpaceOutput,
+    SaveInteriorDataInput, SaveInteriorDataOutput,
     DeleteInteriorDataInput,
-    GetTodoInput,
-    GetTodoOutput,
-    SaveTodoInput,
-    SaveTodoOutput,
+    GetTodoInput, GetTodoOutput,
+    SaveTodoInput, SaveTodoOutput,
     DeleteTodoInput,
-    GetBoardInput,
-    GetBoardOutput,
-    PostBoardInput,
-    PostBoardOutput,
-    DeleteBoardInput,
-    DeleteBoardOutput,
+    GetBoardInput, GetBoardOutput,
+    PostBoardInput, PostBoardOutput,
+    DeleteBoardInput, DeleteBoardOutput,
+    CreateMemoInput, CreateMemoOutput,
+    UpdateMemoInput, UpdateMemoOutput,
+    DeleteMemoInput, DeleteMemoOutput,
+    GetMemoInput,GetMemoOutput,
+    ChangeStandInput, ChangeStandOutput,
 )
 # 기타 사용자 모듈
 from app.services.abs_service import AbsService
@@ -183,6 +181,91 @@ class UserSpaceService(AbsService):
             {"_id": receiver_id},  
             {"$set": {"board": []}}
         )
+
+    # 메모 관련
+    # 메모 생성
+    @staticmethod 
+    async def create_memo(input: CreateMemoInput,
+                          user_space_coll: MongoDBHandler = get_user_space_coll())->CreateMemoOutput:
+        user_id = input.user_id
+        memo_content = input.memo_content
+
+        await user_space_coll.update(
+            {"_id": user_id},
+            {"$push": {"memo_list": memo_content}}
+        )
+
+        memo_list = (await user_space_coll.select({"_id": user_id}, {"memo_list": 1})).get("memo_list")
+        if(memo_list is None):
+            memo_list = []
+        return CreateMemoOutput(
+            memo_list=memo_list
+        )
+    
+    # 메모 수정
+    @staticmethod
+    async def update_memo(input: UpdateMemoInput,
+                          user_space_coll: MongoDBHandler = get_user_space_coll()) -> UpdateMemoOutput: 
+        user_id = input.user_id
+        memo_idx = input.memo_idx
+        memo_content = input.memo_content
+
+        update_count = await user_space_coll.update(
+            {"_id": user_id},
+            {"$set": {
+                f"memo_list.{memo_idx}": memo_content
+            }}
+        )
+
+        if(update_count <= 0):
+            return None
+
+        memo_list = (await user_space_coll.select({"_id": user_id}, {"memo_list": 1})).get("memo_list")
+        if(memo_list is None):
+            memo_list = []
+        return UpdateMemoOutput(
+            memo_list=memo_list
+        ) 
+
+    @staticmethod
+    async def delete_memo(input: DeleteMemoInput,
+                          user_space_coll: MongoDBHandler = get_user_space_coll()) -> DeleteMemoOutput:
+        user_id = input.user_id
+        memo_idx = input.memo_idx
+
+        memo_list = (await user_space_coll.select({"_id": user_id}, {"memo_list": 1})).get("memo_list")
+        del memo_list[memo_idx]
+
+        await user_space_coll.update(
+            {"_id": user_id},
+            {"$set": {"memo_list": memo_list}}
+        )
+
+        return DeleteMemoOutput(memo_list=memo_list)
+
+    @staticmethod
+    async def get_memo(input: GetMemoInput,
+                       user_space_coll: MongoDBHandler = get_user_space_coll()) -> GetMemoOutput:
+        user_id = input.user_id
+
+        memo_list = (await user_space_coll.select({"_id": user_id}, {"memo_list": 1})).get("memo_list")
+        if(memo_list == None):
+            memo_list = []
+
+        return GetMemoOutput(memo_list=memo_list)
+
+    @staticmethod
+    async def change_stand_color(input: ChangeStandInput,
+                                 user_space_coll: MongoDBHandler = get_user_space_coll()) -> ChangeStandInput:
+        user_id = input.user_id
+        stand_color = input.stand_color
+
+        await user_space_coll.update(
+            {"_id": user_id},
+            {"$set": {"light_color": stand_color}}
+        )
+
+        return ChangeStandOutput(stand_color=stand_color)
 
 
 def get_user_space_service():

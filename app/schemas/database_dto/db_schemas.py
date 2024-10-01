@@ -21,8 +21,6 @@ class UserColl(BaseModel):
     accessibility: bool = False
     friend_list: Optional[List[str]] = None
 
-    
-
 # 세션 정보 컬렉션+캐시
 class SessionColl(BaseModel):
     """
@@ -69,19 +67,19 @@ class UserSpaceColl(BaseModel):
     """
     1. userid와 동일
     2. interior_data => 공간의 인테리어 데이터 
-    3. todo_list => 할일 적는 공간 -> 쓸지는 미지수
+    3. memo_list => 메모 남기기 -> 단순 문자열
     4. board => 친구들이 게시물 적는 공간
     5. music_url => 음악 리스트 담는 공간
     6. light_color => 빛 색상
-    7. book_list => 책 이름 리스트
+    7. book_list => 책 이름 리스트 -> [(책제목, 번호)]
     """
     id: str = Field(default_factory=str, alias="_id")
     interior_data: List[FurnitureArrange]
-    todo_list: List[str] = []
+    memo_list: List[str] = []
     board: Optional[List[BoardInfo]] = None 
     music_url: Optional[List[str]] = None
     light_color: Literal[0, 1, 2, 3] = 0
-    book_list: list = []
+    book_list: List[Tuple[str, Literal[0,1,2,3]]] = []
 
 # 장식품 정보 저장 컬렉션
 class DecorColl(BaseModel):
@@ -99,15 +97,17 @@ class TaskingNoteColl(BaseModel):
     1. _id -> 몽고id -> 자동
     2. user_id -> 소유자 id
     2. note_title => user_coll에서 들고 있음
-    3. ntoe_description => 안써도 됨
-    4. page_count -> 총 페이지 수
-    5. text -> {페이지: 내용}
-    6. image -> {{image파일} : 내용}
-    7. file -> {{파일} : 내용}
+    3. note_description => 안써도 됨
+    4. note_color -> 책 색상
+    5. page_count -> 총 페이지 수
+    6. text -> {페이지: 내용}
+    7. image -> {{image파일} : 내용}
+    8. file -> {{파일} : 내용}
     """
     user_id:str 
     note_title: str
     note_description: Optional[str] = ""
+    note_color: Literal[0,1,2,3]
     page_count: int = 0
     text: dict = {} ## 텍스트, 이미지, 파일 모두 리스트+인덱스 조합이 맞는 듯 싶음
     image: dict = {}

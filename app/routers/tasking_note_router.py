@@ -21,24 +21,18 @@ from app.schemas.response_dto.taskingnote_response import (
     GetPageImageRes,
     GetPageFileRes,
     OpenBookRes,
+    GetBookListRes
 )
 # 프로세스
 from app.schemas.service_dto.tasking_note_dto import (
-    CreateNoteInputDto,
-    CreateNoteOutputDto,
-    UpdateNoteInputDto,
-    UpdateNoteOutputDto,
+    CreateNoteInputDto, CreateNoteOutputDto,
+    UpdateNoteInputDto, UpdateNoteOutputDto,
     DeleteNoteInputDto,
-    WritePageInputDto,
-    WritePageOutputDto,
-    GetTextInputDto,
-    GetTextOutputDto,
-    GetImageInputDto,
-    GetImageOutputDto,
-    GetFileInputDto,
-    GetFileOutputDto,
-    OpenBookInputDto,
-    OpenBookOutputDto
+    WritePageInputDto, WritePageOutputDto,
+    GetTextInputDto, GetTextOutputDto,
+    GetImageInputDto, GetImageOutputDto,
+    GetFileInputDto, GetFileOutputDto,
+    OpenBookInputDto, OpenBookOutputDto
 )
 
 router = APIRouter()
@@ -55,11 +49,13 @@ async def create_book(request: Request,
     user_id = user_data.get("_id")
     note_title = input.note_title
     note_description = input.note_description
+    note_color = input.note_color
 
     create_note_input = CreateNoteInputDto(
         user_id=user_id,
         note_title=note_title,
-        note_description=note_description
+        note_description=note_description,
+        note_color=note_color
     )
     create_note_output: CreateNoteOutputDto = await taskingnote_service.create_note(create_note_input)
 
@@ -70,7 +66,8 @@ async def create_book(request: Request,
     return CreateBookRes(
         user_id=create_note_output.user_id,
         note_title=create_note_output.note_title,
-        note_description=create_note_output.note_description
+        note_description=create_note_output.note_description,
+        note_color=create_note_output.note_color
     )
 
 @router.put("/update",
@@ -84,13 +81,15 @@ async def update_book(request: Request,
     user_id = user_data.get("_id")
     note_title = input.note_title
     new_note_title = input.new_note_title
-    note_description = input.new_note_description
+    new_note_description = input.new_note_description
+    new_note_color = input.new_note_color
 
     update_note_input = UpdateNoteInputDto(
         user_id=user_id,
         note_title=note_title,
         new_note_title=new_note_title,
-        note_description=note_description
+        new_note_description=new_note_description,
+        new_note_color=new_note_color
     )
 
     update_note_output: UpdateNoteOutputDto = await taskingnote_service.update_note(update_note_input)
@@ -98,7 +97,8 @@ async def update_book(request: Request,
     return UpdateBookRes(
         user_id=update_note_output.user_id,
         note_title=update_note_output.note_title,
-        note_description=update_note_output.note_description
+        note_description=update_note_output.note_description,
+        note_color=update_note_output.note_color
     )
 
 @router.delete("/delete",
@@ -269,10 +269,16 @@ async def get_page_file(request: Request,
         page_image=get_file_output.page_file
     )
 
+@router.get("/list", summary="책 목록 불러오기, 세션id 필요")
+async def get_book_list(request: Request,
+                        taskingnote_service: TaskingNoteService = Depends(get_taskingnote_service)):
+    user_data = await SessionMiddleware.session_check(request)    
 
+    user_id = user_data.get("_id")
 
+    book_list = await taskingnote_service.get_book_list(user_id)
 
-
+    return GetBookListRes(book_list=book_list)
 
 
 

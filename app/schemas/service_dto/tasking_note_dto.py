@@ -1,27 +1,31 @@
 from pydantic import BaseModel
-from typing import Optional, Dict, IO, Any
+from typing import Optional, Dict, IO, Any, Literal
 from bson.binary import Binary
 
 class CreateNoteInputDto(BaseModel):
     user_id: str
     note_title: str
-    note_description: Optional[str]
+    note_description: Optional[str] = None
+    note_color: Literal[0,1,2,3]
 
 class CreateNoteOutputDto(BaseModel):
     user_id: str
     note_title: str
-    note_description: Optional[str]
+    note_description: Optional[str] = None
+    note_color: Literal[0,1,2,3]
 
 class UpdateNoteInputDto(BaseModel):
     user_id: str
     note_title: str
-    new_note_title: str
-    note_description: str
+    new_note_title: Optional[str] = None
+    new_note_description: Optional[str] = None
+    new_note_color: Optional[Literal[0,1,2,3]] = None
 
 class UpdateNoteOutputDto(BaseModel):
     user_id: str
-    note_title: str
-    note_description: str
+    note_title: Optional[str]=None
+    note_description: Optional[str]=None
+    note_color: Optional[Literal[0,1,2,3]]=None
 
 class DeleteNoteInputDto(BaseModel):
     user_id: str

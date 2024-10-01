@@ -7,27 +7,29 @@ from app.middleware.session.session_middleware import SessionMiddleware
 from app.services.user_space_service import UserSpaceService, get_user_space_service
 # DTO 
 from app.schemas.service_dto.user_space_dto import (
-    GetUserSpaceInput,
-    GetUserSpaceOutput,
-    SaveInteriorDataInput,
-    SaveInteriorDataOutput,
+    GetUserSpaceInput, GetUserSpaceOutput,
+    SaveInteriorDataInput, SaveInteriorDataOutput,
     DeleteInteriorDataInput,
-    GetTodoInput,
-    GetTodoOutput,
-    SaveTodoInput,
-    SaveTodoOutput,
+    GetTodoInput, GetTodoOutput,
+    SaveTodoInput,SaveTodoOutput,
     DeleteTodoInput,
-    GetBoardInput,
-    GetBoardOutput,
-    PostBoardInput,
-    PostBoardOutput,
-    DeleteBoardInput,
-    DeleteBoardOutput
+    GetBoardInput, GetBoardOutput,
+    PostBoardInput, PostBoardOutput,
+    DeleteBoardInput, DeleteBoardOutput,
+    CreateMemoInput, CreateMemoOutput,
+    UpdateMemoInput, UpdateMemoOutput,
+    DeleteMemoInput, DeleteMemoOutput,
+    GetMemoInput, GetMemoOutput,
+    ChangeStandInput, ChangeStandOutput,
 )
 from app.schemas.request_dto.user_space_request import (
     SpaceSaveRequest,
     PostTodoRequest,
     PostBoardRequest,
+    CreateMemoReq,
+    UpdateMemoReq,
+    DeleteMemoReq,
+    ChangeLightReq,
 )
 from app.schemas.response_dto.user_space_response import (
     GetSpaceResponse,
@@ -38,6 +40,11 @@ from app.schemas.response_dto.user_space_response import (
     GetBoardResponse,
     PostBoardResponse,
     DeleteBoardResponse,
+    CreateMemoRes, 
+    UpdateMemoRes,
+    DeleteMemoRes,
+    GetMemoRes,
+    ChangeLightRes,
 )
 # 기타 사용자 모듈
 from app.api_spec.user_space_spec import UserSpaceSpec
@@ -196,3 +203,120 @@ async def delete_space_board(request: Request,
     await user_space_service.delete_board(delete_board_input)
 
     return DeleteBoardResponse(message="board has been cleared")
+
+# 메모 관련
+# 메모 생성
+@router.post("/memo/create",
+             summary="메모(pc밑에 붙는거) 만들기",
+             description="""
+                메모에 적을 내용을 memo_content에 적어서 넣기 <br><br>
+                변경된 memo_list를 응답 <br><br>
+                검증 위한 세션 id 필수
+            """)
+async def create_space_board(request: Request,
+                             input: CreateMemoReq,
+                             user_space_service: UserSpaceService = Depends(get_user_space_service)):
+    user_data = await SessionMiddleware.session_check(request)
+
+    user_id = user_data.get("_id")
+    memo_content = input.memo_content
+
+    memo_input = CreateMemoInput(
+        user_id=user_id,
+        memo_content=memo_content
+    )
+    memo_output: CreateMemoOutput = await user_space_service.create_memo(memo_input)
+
+    return CreateMemoRes(memo_output.memo_list)
+
+@router.put("/memo/update",
+             summary="메모(pc밑에 붙는거) 수정",
+             description="""
+                수정할 메모의 idx(배열 인덱스)를 memo_idx에 넣기 <br><br>
+                메모에 적을 내용을 memo_content에 적어서 넣기 <br><br>
+                변경된 memo_list를 응답 <br><br>
+                검증 위한 세션 id 필수
+            """)
+async def update_space_board(request: Request,
+                             input: UpdateMemoReq,
+                             user_space_service: UserSpaceService = Depends(get_user_space_service)):
+    user_data = await SessionMiddleware.session_check(request)
+
+    user_id = user_data.get("_id")
+    memo_idx = input.memo_idx
+    memo_content = input.memo_content
+
+    memo_input = UpdateMemoInput(
+        user_id=user_id,
+        memo_idx=memo_idx,
+        memo_content=memo_content
+    )
+
+    memo_output: UpdateMemoOutput = await user_space_service.update_memo(memo_input)
+
+    return UpdateMemoRes(
+        memo_list=memo_output.memo_list
+    )
+
+@router.delete("/memo/delete",
+             summary="메모(pc밑에 붙는거) 삭제",
+             description="""
+                삭제할 메모의 memo_idx(메모 list의 배열 인덱스) <br><br>
+                변경된 memo_list를 응답 <br><br>
+                검증 위한 세션 id 필수
+            """)
+async def delete_space_board(request: Request,
+                             input: DeleteMemoReq,
+                             user_space_service: UserSpaceService = Depends(get_user_space_service)):
+    user_data = await SessionMiddleware.session_check(request)
+
+    user_id = user_data.get("_id")
+    memo_idx = input.memo_idx
+
+    memo_input = DeleteMemoInput(user_id=user_id, memo_idx=memo_idx)
+    memo_output: DeleteMemoOutput = await user_space_service.delete_memo(memo_input)
+
+    return DeleteMemoRes(
+        memo_list=memo_output.memo_list
+    )
+
+@router.get("/memo",
+             summary="메모(pc밑에 붙는거) 조회",
+             description="""
+                그냥 전체 공간 정보 호출하면 메모도 포함돼서 옴, 혹시 몰라 만듬 <br><br>
+                memo_list를 응답 <br><br>
+                검증 위한 세션 id 필수
+            """)
+async def get_space_memo(request: Request,
+                         user_space_service: UserSpaceService = Depends(get_user_space_service)):
+    user_data = await SessionMiddleware.session_check(request)
+
+    user_id = user_data.get("_id")
+    
+    memo_input = GetMemoInput(user_id=user_id)
+    memo_output: GetMemoOutput = await user_space_service.get_memo(memo_input)
+
+    return GetMemoRes(memo_list=memo_output.memo_list)
+
+@router.post("/stand/change",
+             summary="스탠드 색상 변경",
+             description="""
+                변경할 색상을 light_color 에 넣어서 요청 <br><br>
+                light_color는 0,1,2,3 만 가능 <br><br>
+                변경된 색상 light_color로 응답 <br><br>
+                검증 위한 세션 id 필수
+            """)
+async def change_stand_color(request: Request,
+                             input: ChangeLightReq,
+                             user_space_service: UserSpaceService = Depends(get_user_space_service)):
+    user_data = await SessionMiddleware.session_check(request)
+
+    user_id = user_data.get("_id")
+    light_color = input.light_color
+
+    change_input = ChangeStandInput(user_id=user_id, stand_color=light_color)
+    change_output: ChangeStandOutput = await user_space_service.change_stand_color(change_input)
+
+    return ChangeLightRes(
+        change_output.stand_color
+    )

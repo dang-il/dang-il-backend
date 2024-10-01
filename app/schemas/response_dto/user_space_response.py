@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Literal
 
 class GetSpaceResponse(BaseModel):
     message: str
@@ -30,3 +30,18 @@ class PostBoardResponse(BaseModel):
     
 class DeleteBoardResponse(BaseModel):
     message: str
+
+class CreateMemoRes(BaseModel):
+    memo_list: List[str]
+
+class UpdateMemoRes(BaseModel):
+    memo_list: List[str]
+
+class DeleteMemoRes(BaseModel):
+    memo_list: List[str]
+
+class GetMemoRes(BaseModel):
+    memo_list: List[str]
+
+class ChangeLightRes(BaseModel):
+    light_color: Literal[0, 1, 2, 3]
