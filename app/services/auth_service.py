@@ -25,7 +25,6 @@ from app.utils.db_handlers.redis_handler import RedisHandler
 
 class AuthService(AbsService):
     instance: Optional["AuthService"] = None
-    
     # 싱글톤 반환
     @classmethod
     def get_instance(cls) -> "AuthService":
@@ -92,32 +91,25 @@ class AuthService(AbsService):
 
         user_response.raise_for_status()
         user_json = user_response.json()
+        print("jsoncheck: ", user_json)
         user_data = {
             "_id": str(user_json.get("id")),
             "name": str(user_json.get("properties").get("nickname")),
             "email": str(user_json.get("kakao_account").get("email")),
             "profile_image_url": user_json.get("properties").get("profile_image")
         }
+        print("checking: ", user_data)
 
         return AuthCallbackOutput(**user_data)
 
     # 사용자 등록 처리
     @staticmethod
-<<<<<<< HEAD
-    async def register(
-        input: AuthRegisterInput,
-        user_coll: MongoDBHandler = get_user_coll(),
-        session_coll: MongoDBHandler = get_session_coll(),
-        session_cache: RedisHandler = get_session_cache()
-    ) -> AuthRegisterOutput:
-=======
     async def register(input: AuthRegisterInput,
                            user_coll: MongoDBHandler=get_user_coll(),
                            user_space_coll: MongoDBHandler = get_user_space_coll(),
                            user_taskingtime_coll: MongoDBHandler = get_user_tasking_time_coll(),
                            session_coll: MongoDBHandler=get_session_coll(),
                            session_cache: RedisHandler=get_session_cache())->AuthRegisterOutput:
->>>>>>> e0edc4d1b31ed52901090b925482b265f8118568
         # 사용자 태그 선택
         user_coll_conn = user_coll.get_collection_conn()
         user_tag = (str(await user_coll_conn.count_documents({})).zfill(5))[::-1]
@@ -148,10 +140,6 @@ class AuthService(AbsService):
         user_coll_task = create_task(user_coll.insert(user_document_dict))
         session_coll_task = create_task(session_coll.insert(session_document_dict))
         session_cache_task = create_task(session_cache.insert(session_cache_document_dict))
-<<<<<<< HEAD
-        await gather(user_coll_task, session_coll_task, session_cache_task)
-
-=======
         await gather(session_coll_task, session_cache_task)
         
         user_id = await user_coll_task
@@ -172,7 +160,6 @@ class AuthService(AbsService):
         await gather(task1, task2)
         
         # 레디스 ttl 만료 설정
->>>>>>> e0edc4d1b31ed52901090b925482b265f8118568
         session_cache_id = session_document.id
         ttl = int(datetime.timedelta(days=3).total_seconds())
         session_cache_conn = await session_cache.get_redis_conn()
@@ -188,8 +175,7 @@ class AuthService(AbsService):
     async def login(
         input: AuthLoginInput,
         session_coll: MongoDBHandler = get_session_coll(),
-        session_cache: RedisHandler = get_session_cache()
-    ) -> AuthLoginOutput:
+        session_cache: RedisHandler = get_session_cache()) -> AuthLoginOutput:
         if input.session_id is not None:
             session_delete_task = create_task(session_coll.delete({"_id": input.session_id}))
             session_cache_delete_task = create_task(session_cache.delete(input.session_id))
