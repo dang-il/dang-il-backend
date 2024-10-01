@@ -24,7 +24,7 @@ class MongoDBHandler:
             if(user is None or password is None):
                 url = f'mongodb://{host}:{port}'
             else:
-                url = f'mongodb://{user}:{password}@{host}:{port}'
+                url = f'mongodb://{user}:{password}@{host}:{port}/?authSource=admin'
 
             MongoDBHandler.db_conn = AsyncIOMotorClient(url)
 

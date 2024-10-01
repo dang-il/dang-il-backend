@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Tuple, List, Optional
+from typing import Tuple, List, Optional, Literal
 
 class FurnitureArrange(BaseModel):
     decor_id: str
@@ -36,3 +36,16 @@ class PostBoardRequest(BaseModel):
             "content": "게시판에 작성할 글입니다."
         }
     )
+
+class CreateMemoReq(BaseModel):
+    memo_content: str
+
+class UpdateMemoReq(BaseModel):
+    memo_idx: int
+    memo_content: str
+
+class DeleteMemoReq(BaseModel):
+    memo_idx: int
+
+class ChangeLightReq(BaseModel):
+    light_color: Literal[0, 1, 2, 3]

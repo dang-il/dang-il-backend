@@ -3,21 +3,14 @@ from typing import Optional
 from asyncio import create_task, gather, sleep
 # dto
 from app.schemas.service_dto.tasking_note_dto import (
-    CreateNoteInputDto,
-    CreateNoteOutputDto,
-    UpdateNoteInputDto,
-    UpdateNoteOutputDto,
+    CreateNoteInputDto, CreateNoteOutputDto,
+    UpdateNoteInputDto, UpdateNoteOutputDto,
     DeleteNoteInputDto,
-    WritePageInputDto,
-    WritePageOutputDto,
-    OpenBookInputDto,
-    OpenBookOutputDto,
-    GetTextInputDto,
-    GetTextOutputDto,
-    GetImageInputDto,
-    GetImageOutputDto,
-    GetFileInputDto,
-    GetFileOutputDto,
+    WritePageInputDto, WritePageOutputDto,
+    OpenBookInputDto, OpenBookOutputDto,
+    GetTextInputDto, GetTextOutputDto,
+    GetImageInputDto, GetImageOutputDto,
+    GetFileInputDto, GetFileOutputDto,
     DeletePageInput,
 )
 # 기타 사용자 모듈
@@ -26,7 +19,6 @@ from app.services.abs_service import AbsService
 from app.deps import get_user_coll, get_taskingnote_coll, get_user_space_coll
 from app.utils.db_handlers.mongodb_handler import MongoDBHandler
 
-# 이거 레디스 캐시 적용은 시간 나면 할 것
 class TaskingNoteService(AbsService):
     instance: Optional["TaskingNoteService"] = None
     # 싱글톤 반환
@@ -53,6 +45,7 @@ class TaskingNoteService(AbsService):
             "user_id": input.user_id,
             "note_title": input.note_title,
             "note_description": input.note_description,
+            "note_color": input.note_color
         }
         note_task = create_task(taskingnote_coll.insert(note_dict))
 
@@ -61,18 +54,18 @@ class TaskingNoteService(AbsService):
             {"_id": input.user_id},
             {
                 "$push": {
-                    "book_list": input.note_title
+                    "book_list": (input.note_title, input.note_color)
                 }
             }
         ))
 
-        await note_task
-        await space_task
+        await gather(note_task, space_task)
         
         return CreateNoteOutputDto(
             user_id = input.user_id,
             note_title=input.note_title,
-            note_description=input.note_description
+            note_description=input.note_description,
+            note_color=input.note_color
         )
     
     # 책 수정 -> id는 유저아이디, 이름, 설명만 받고 그대로 반환
@@ -82,17 +75,19 @@ class TaskingNoteService(AbsService):
                           taskingnote_coll: MongoDBHandler = get_taskingnote_coll()) -> UpdateNoteOutputDto:        
         # task 생성(user_space_coll, taskingnote_coll 모두)
         # 유저 리스트에서 변경
-        user_space_book_list = await user_space_coll.select(
+        user_space_book_list = (await user_space_coll.select(
             {"_id": input.user_id},
             {"book_list": 1}
-        )
-        user_space_book_list = user_space_book_list.get("book_list")
-
+        )).get("book_list")
+        # userSpace에 값 수정
         for i in range(len(user_space_book_list)):
-            if(user_space_book_list[i] == input.note_title):
-                user_space_book_list[i] = input.new_note_title
+            if(user_space_book_list[i][0] == input.note_title):
+                if(input.new_note_title is not None):
+                    user_space_book_list[i][0] = input.new_note_title
+                if(input.new_note_color is not None):
+                    user_space_book_list[i][1] = input.new_note_color
                 break
-
+        # 업데이트 하는 태스크
         user_space_update_task = create_task(
             user_space_coll.update(
                 {"_id": input.user_id},
@@ -101,33 +96,26 @@ class TaskingNoteService(AbsService):
                 }
             )
         )
-
-        if(input.note_description == "" or input.note_description is None):
-            taskingnote_update_task = create_task(taskingnote_coll.update(
-                {"user_id": input.user_id, "note_title": input.note_title},
-                {
-                    "$set" : {
-                        "note_title": input.new_note_title
-                    }
-                }
-            ))
-        else:
-            taskingnote_update_task = create_task(taskingnote_coll.update(
-                {"user_id": input.user_id, "note_title": input.note_title},
-                {
-                    "$set" : {
-                        "note_title": input.new_note_title,
-                        "note_description": input.note_description
-                    }
-                }
-            ))
-
+        # 있는 값만 수정하게 내부 쿼리 세팅
+        set_inner_query = {}
+        if(input.new_note_title is not None):
+            set_inner_query["note_title"] = input.new_note_title
+        if(input.new_note_description is not None):
+            set_inner_query["note_description"] = input.new_note_description
+        if(input.new_note_color is not None):
+            set_inner_query["note_color"] = input.new_note_color
+        # taskingnote에 수정하는 테스크
+        taskingnote_update_task = create_task(taskingnote_coll.update(
+            {"user_id": input.user_id, "note_title": input.note_title}, {"$set" : set_inner_query}
+        ))
+        # 비동기 작업 대기
         await gather(user_space_update_task, taskingnote_update_task)
 
         return UpdateNoteOutputDto(
             user_id=input.user_id,
             note_title=input.new_note_title,
-            note_description=input.note_description
+            note_description=input.new_note_description,
+            note_color=input.new_note_color
         )
 
     # 책 삭제 -> id는 유저아이디, 이름만 받음 반환X
@@ -136,8 +124,12 @@ class TaskingNoteService(AbsService):
                           user_space_coll: MongoDBHandler = get_user_space_coll(),
                           taskingnote_coll: MongoDBHandler = get_taskingnote_coll()) -> None:
         # 테스크 생성
-        user_space_delete_task = create_task(user_space_coll.update({"_id": input.user_id},
-                                                                     {"$pull": {"book_list": input.note_title}}))
+        user_space_delete_task = create_task(
+            user_space_coll.update(
+                {"_id": input.user_id},
+                {"$pull": {"book_list": {"$elemMatch": {"0": input.note_title}}}}
+            )
+        )
         taskingnote_delete_task = create_task(taskingnote_coll.delete({"user_id": input.user_id, "note_title": input.note_title}))
         # 테스크 완료
         await gather(user_space_delete_task, taskingnote_delete_task)
@@ -289,35 +281,12 @@ class TaskingNoteService(AbsService):
             await gather(page_decrease_task, page_text_task, page_image_task, page_file_task)
         else:
             return None
-
-
-
-    # @staticmethod
-    # async def write_text(input: WriteTextInputDto,
-    #                      taskingnote_coll: MongoDBHandler = get_taskingnote_coll()) -> WriteTextOutputDto:
-    #     await taskingnote_coll.update({"_id": input.note_id}, {
-    #             "$set": {f"text.{input.note_page}": input.note_text}
-    #         })
         
-    #     return WriteTextOutputDto(
-    #         note_id=input.note_id,
-    #         note_page=input.note_page,
-    #         note_text=input.note_page,
-    #     )
-
-
-# 정의 
-# 가능하면 캐시 중간에 두기
-# 파일은 -> {{file:책page수/몇 번째 파일인지}} = 해당 책의 몇 번째 파일인가(위에서 아래로 순서)
-    # ex) {{file: 2/3}} => 해당 책의 2page의 3번째 파일
-# 이미지는 -> {{image: 책page수/몇 번째 이미지인지}}
-#  0. 책 전체 생성, 수정, 삭제
-#  1. 페이지 전체 생성
-
-#  2. 텍스트만 작성(수정과 동일), 조회, 보내기 -> 이거 분리하자
-# 
-# 
-# 
+    @staticmethod
+    async def get_book_list(user_id: str,
+                            user_space_coll: MongoDBHandler = get_user_space_coll()):
+        book_list = (await user_space_coll.select({"_id": user_id}, {"book_list": 1})).get("book_list")
+        return book_list
 
 def get_taskingnote_service():
     return TaskingNoteService.get_instance()

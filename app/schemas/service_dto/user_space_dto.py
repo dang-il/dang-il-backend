@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Union, Tuple, List, Optional, Dict
+from typing import Union, Tuple, List, Optional, Dict, Literal
 
 class GetUserSpaceInput(BaseModel):
     id: str
@@ -66,3 +66,40 @@ class DeleteBoardInput(BaseModel):
 
 class DeleteBoardOutput(BaseModel):
     pass
+
+# 메모
+class CreateMemoInput(BaseModel):
+    user_id: str
+    memo_content: str
+
+class CreateMemoOutput(BaseModel):
+    memo_list : List[str]
+
+class UpdateMemoInput(BaseModel):
+    user_id: str
+    memo_idx: int
+    memo_content: str
+
+class UpdateMemoOutput(BaseModel):
+    memo_list: List[str]
+
+class DeleteMemoInput(BaseModel):
+    user_id: str
+    memo_idx: int
+
+class DeleteMemoOutput(BaseModel):
+    memo_list: List[str]
+
+class GetMemoInput(BaseModel):
+    user_id: str
+
+class GetMemoOutput(BaseModel):
+    memo_list: List[str]
+
+# 스탠드 색깔 바꾸기
+class ChangeStandInput(BaseModel):
+    user_id: str
+    stand_color: Literal[0, 1, 2, 3]
+
+class ChangeStandOutput(BaseModel):
+    stand_color: Literal[0, 1, 2, 3]

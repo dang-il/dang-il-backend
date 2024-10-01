@@ -73,48 +73,26 @@ if(__name__ == "__main__"):
             "interior_data": [{
                 "decor_id": "desk1",
                 "location": (1.0, 2.0, 3.0)
-            }]
+            }],
         })
         await tasking_time_coll.insert({
             "_id": "test1",
-            "today_tasking_time": {
-                "total_time": 3600,
-                "task_specific_time": {
-                    "math": 1900,
-                    "coding": 1700
-                }
-            },
-            "previous_tasking_time": {
-                "day1": {
-                    "total_time": 10800,
-                    "task_specific_time": {
-                        "math": 5400,
-                        "coding": 5400
-                    },
-                "day2": {
-                    "total_time": 3600,
-                    "task_specific_time": {
-                        "math": 1000,
-                        "coding": 2600
-                    }
-                }
-            }
-        }})
-        # 친구 데이터에서 공간정보 예시 넣기
-        await user_space_coll.insert({
-            "_id": "0",
-            "interior_data": [{
-                "decor_id": "0",
-                "location": (0.0, 0.0, 0.0)
-            }]
+            "today_tasking_time": 10,
+            "previous_tasking_time": {"0925": 122}   
         })
         await user_space_coll.insert({
-            "_id": "1",
+            "_id": "test2",
             "interior_data": [{
-                "decor_id": "1",
-                "location": (1.0, 1.0, 1.0)
-            }]
+                "decor_id": "desk1",
+                "location": (1.0, 2.0, 3.0)
+            }],
         })
+        await tasking_time_coll.insert({
+            "_id": "test2",
+            "today_tasking_time": 10,
+            "previous_tasking_time": {"0925": 122}   
+        })
+
         await user_coll.insert(documents)
         await user_coll.update({"_id":"test1"}, {"$set": {"friend_list": friend_list}})
 
