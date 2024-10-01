@@ -37,6 +37,25 @@ class UserSpaceService(AbsService):
         return cls.instance
     
     @staticmethod
+    async def initialize_space(user_id: str,
+                               user_space_coll: MongoDBHandler = get_user_space_coll(),
+                               user_tasking_time_coll: MongoDBHandler = get_user_tasking_time_coll()):
+        task1 = create_task(user_space_coll.insert(
+            {
+                "_id": user_id,
+                "interior_data": []
+                }
+            ))
+        task2 = create_task(user_tasking_time_coll.insert(
+            {
+                "_id": user_id,
+                "today_tasking_time": 0
+                }
+            ))
+
+        await gather(task1, task2)
+
+    @staticmethod
     async def get_user_space_data(input: GetUserSpaceInput,
                                   user_coll: MongoDBHandler = get_user_coll(),
                                   user_space_coll: MongoDBHandler = get_user_space_coll(),

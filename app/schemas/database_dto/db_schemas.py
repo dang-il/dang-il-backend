@@ -19,8 +19,8 @@ class UserColl(BaseModel):
     email: str
     tag: str
     accessibility: bool = False
-    
     friend_list: Optional[List[str]] = None
+
     
 
 # 세션 정보 컬렉션+캐시
@@ -41,8 +41,8 @@ class TaskingTime(BaseModel):
     
 class UserTaskingTimeColl(BaseModel):
     id: str = Field(default_factory=str, alias="_id")
-    today_tasking_time: TaskingTime
-    previous_tasking_time: Dict[Union[str,datetime], TaskingTime] # 날짜: 그 날 시간
+    today_tasking_time: int
+    previous_tasking_time: Dict[str, int] = {} # 날짜: 그 날 시간
  
 # 친구 추가 요청 대기 컬렉션  ㅌ
 class FriendWaitColl(BaseModel):
@@ -72,7 +72,8 @@ class UserSpaceColl(BaseModel):
     3. todo_list => 할일 적는 공간 -> 쓸지는 미지수
     4. board => 친구들이 게시물 적는 공간
     5. music_url => 음악 리스트 담는 공간
-    6. book_list => 책 공간 -> {note_id: note_id, note_title: title}
+    6. light_color => 빛 색상
+    7. book_list => 책 이름 리스트
     """
     id: str = Field(default_factory=str, alias="_id")
     interior_data: List[FurnitureArrange]
@@ -80,6 +81,7 @@ class UserSpaceColl(BaseModel):
     board: Optional[List[BoardInfo]] = None 
     music_url: Optional[List[str]] = None
     light_color: Literal[0, 1, 2, 3] = 0
+    book_list: list = []
 
 # 장식품 정보 저장 컬렉션
 class DecorColl(BaseModel):
@@ -94,15 +96,16 @@ class DecorColl(BaseModel):
 # id는 user_id와 동일하지 않음
 class TaskingNoteColl(BaseModel):
     """
-    1. note의 id -> 이건 user_coll에서 들고 있음
-    2. note의 제목(이것도 user_coll에서 들고 있음)
+    1. _id -> 몽고id -> 자동
+    2. user_id -> 소유자 id
+    2. note_title => user_coll에서 들고 있음
     3. ntoe_description => 안써도 됨
     4. page_count -> 총 페이지 수
     5. text -> {페이지: 내용}
     6. image -> {{image파일} : 내용}
     7. file -> {{파일} : 내용}
     """
-    note_id:str = Field(default_factory=str, alias="_id")
+    user_id:str 
     note_title: str
     note_description: Optional[str] = ""
     page_count: int = 0

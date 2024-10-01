@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Literal, Optional, List
+from typing import Literal, Optional, List, Union
 
 class FriendApplyInput(BaseModel):
     sender_id: str
@@ -16,6 +16,7 @@ class FriendApplyResInput(BaseModel):
 
 class FriendApplyResOutput(FriendApplyResInput):
     pass
+    receiver_friendlist: list
 
 class FriendSearchInput(BaseModel):
     search_word: str
@@ -28,4 +29,7 @@ class FriendSearchData(BaseModel):
 class FriendSearchOutput(BaseModel):
     exist_status: bool
     user_data_list: List[FriendSearchData]
-    
+
+class FriendFriendSearchInput(BaseModel):
+    friend_list: Union[list, bool]
+    search_word: str

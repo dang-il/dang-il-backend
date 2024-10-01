@@ -1,5 +1,5 @@
 #libraries
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, Response
 from fastapi.responses import JSONResponse
 # 미들웨어
 from app.middleware.session.session_middleware import SessionMiddleware
@@ -43,6 +43,19 @@ from app.schemas.response_dto.user_space_response import (
 from app.api_spec.user_space_spec import UserSpaceSpec
 
 router = APIRouter()
+
+@router.post("/init")
+async def init_space(request: Request,
+                     response: Response,
+                     user_space_service: UserSpaceService = Depends(get_user_space_service)):
+    user_data = await SessionMiddleware.session_check(request)
+
+    await user_space_service.initialize_space(user_id = user_data.get("_id"))
+
+    response.status_code = 204
+    return response
+
+
 
 # 유저 공간 정보 불러오기 + 이때 할일 적은 것+게시판도 같은 컬렉션에 넣기/ 메인페이지에는 안 가도록 함
 @router.get("/{path_user_id}", response_model=GetSpaceResponse, **(UserSpaceSpec.space()))

@@ -44,11 +44,8 @@ class SessionMiddleware:
                     raise HTTPException(status_code=401, detail="Invalid session")
         
         # 유저 id로 유저 정보 받고 이를 반환
-        print("세션체크0", session_check_result)
         user_id = session_check_result.get("identifier")
-        print("세션체크:", user_id)
         user_data = await user_coll.select({"_id": user_id})
-        print("세션체크2:", user_data)
         return user_data
         
 def get_session_middleware():

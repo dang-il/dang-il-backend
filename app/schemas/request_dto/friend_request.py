@@ -21,3 +21,4 @@ class FriendApplyResRequest(BaseModel):
     
 class FriendSearchRequest(BaseModel):
     search_word: str = Field(..., description="검색어(친구 이름 등)", examples=["test1"])
+

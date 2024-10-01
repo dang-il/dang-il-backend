@@ -10,6 +10,7 @@ from app.schemas.service_dto.friend_dto import (
     FriendApplyResOutput,
     FriendSearchInput,
     FriendSearchOutput,
+    FriendFriendSearchInput,
 )
 from app.schemas.request_dto.friend_request import (
     FriendApplyRequest,
@@ -38,8 +39,17 @@ async def post_friend_apply(request: Request,
                             friend_service: FriendService = Depends(get_friend_service),
                             sse_connection_service: SSEConnectionService = Depends(get_sse_connection_service)):
     user_data = await SessionMiddleware.session_check(request)
+
     sender_id = post_input.sender_id
     receiver_id = post_input.receiver_id
+    user_name = user_data.get("name")
+
+    # 검증 -> 쿠키의 id와 입력 sender_id가 다르면 기각
+    print("하이이ㅣ이이잉")
+    print(sender_id)
+    print(user_data.get("_id"))
+    if(sender_id != user_data.get("_id")):
+        return JSONResponse(content={}, status_code=400)
     
     friend_apply_input = FriendApplyInput(
         sender_id=sender_id,
@@ -64,7 +74,8 @@ async def post_friend_apply(request: Request,
         "source": request.url.path,
         "data": {
             "sender_id": sender_id,
-            "receiver_id": receiver_id
+            "receiver_id": receiver_id,
+            "sender_name": user_name
         }
     }
     insert_queue_input = InsertSSEQueueInput(
@@ -90,6 +101,7 @@ async def post_friend_apply_response(request: Request,
     
     sender_id = post_input.sender_id
     receiver_id = user_data.get("_id")
+    receiver_name = user_data.get("name")
     consent_status = post_input.consent_status
     
     friend_apply_res_input = FriendApplyResInput(
@@ -98,7 +110,7 @@ async def post_friend_apply_response(request: Request,
         receiver_id=receiver_id
     )
     
-    await friend_service.friend_apply_response(friend_apply_res_input)
+    friend_apply_response: FriendApplyResOutput = await friend_service.friend_apply_response(friend_apply_res_input)
     
     if(consent_status):
         # 친구 요청 승낙 여부 큐에 삽입
@@ -107,7 +119,8 @@ async def post_friend_apply_response(request: Request,
             "data": {
                 "consent_status": consent_status,
                 "sender_id": sender_id,
-                "receiver_id": receiver_id
+                "receiver_id": receiver_id,
+                "receiver_name": receiver_name
             }
         }
         insert_queue_input = InsertSSEQueueInput(
@@ -124,7 +137,8 @@ async def post_friend_apply_response(request: Request,
         message=response_message,
         data={
             "sender_id": sender_id,
-            "receiver_id": receiver_id
+            "receiver_id": receiver_id,
+            "reciever_friendlist": friend_apply_response.receiver_friendlist
         }
     )
 
@@ -135,6 +149,34 @@ async def post_friend_search(post_input: FriendSearchRequest,
     
     friend_search_input = FriendSearchInput(search_word=search_word)
     friend_search_data: FriendSearchOutput = await friend_service.friend_search(friend_search_input)
+    
+    if(not friend_search_data.exist_status):
+        return JSONResponse(
+            content={"message": "The search data does not exist"},
+            status_code=204
+        )
+    else:
+        return FriendSearchResponse(
+            message="search data successfully transported",
+            user_data_list=friend_search_data.user_data_list
+        )
+    
+@router.post(path="/friendsearch",
+             summary="친구만 검색하는 api",
+             description="세션 필요, 친구만 검색(/friend/search는 친구 아니어도 검색) api")
+async def post_friend_search(request: Request,
+                             post_input: FriendSearchRequest,
+                             friend_service: FriendService = Depends(get_friend_service)):
+    user_data = await SessionMiddleware.session_check(request)
+
+    friend_list = user_data.get("friend_list")
+    search_word = post_input.search_word
+    
+    friend_search_input = FriendFriendSearchInput(
+        friend_list = friend_list,
+        search_word= search_word
+    )
+    friend_search_data: FriendSearchOutput = await friend_service.friend_friendsearch(friend_search_input)
     
     if(not friend_search_data.exist_status):
         return JSONResponse(
