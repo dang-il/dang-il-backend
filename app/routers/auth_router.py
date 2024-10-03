@@ -7,7 +7,7 @@ from fastapi.exceptions import HTTPException
 from app.deps import get_user_coll
 from app.services.auth_service import get_auth_service, AuthService
 # 로그아웃 서비스 추가
-from app.services.logout_service import get_logout_service, LogoutService
+from app.services.logout_service import LogoutService #,get_logout_service
 
 # 미들웨어
 from app.middleware.session.session_middleware import SessionMiddleware
@@ -25,7 +25,7 @@ from app.schemas.request_dto.auth_request import (
 )
 from app.schemas.response_dto.auth_response import (
     AuthCallbackResponse,
-    AuthLogoutResponse
+    # AuthLogoutResponse
 )
 # 기타 사용자 모듈
 from app.configs.config import settings
@@ -170,6 +170,7 @@ async def auth_kakao_callback(post_input: AuthCallbackRequest,
     )
 
 # 로그아웃
-@router.post("/logout", response_model=AuthLogoutResponse, **(AuthSpec.auth_logout()))
-async def auth_logout(request: Request, response: Response):
-    return await LogoutService.logout(request, response)
+@router.post("/logout", **(AuthSpec.auth_logout()))
+async def logout(request: Request, response:Response):
+    logout_service = LogoutService()
+    return await logout_service.logout(request, response)

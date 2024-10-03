@@ -15,6 +15,7 @@ from routers.friend_router import router as friend_router
 from routers.user_space_router import router as space_router
 from app.routers.youtube_router import router as youtube_router
 from routers.tasking_note_router import router as book_router
+from routers.user_updatename_routers import router as user_router
 
 app = FastAPI(
     title="예술적인 소프트웨어 dangil api 문서",
@@ -41,6 +42,7 @@ app.include_router(friend_router, prefix="/friend", tags=["friend"])
 app.include_router(space_router, prefix="/space", tags=["space"])
 app.include_router(book_router, prefix="/book", tags=["book"])
 app.include_router(youtube_router, prefix="/youtube", tags=["YouTube"])
+app.include_router(user_router, prefix="/users", tags=["user"])
 
 @app.get("/")
 async def index():
