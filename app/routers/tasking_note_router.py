@@ -45,6 +45,9 @@ async def create_book(request: Request,
                       input: CreateBookReq,
                       taskingnote_service: TaskingNoteService = Depends(get_taskingnote_service)) -> CreateBookRes:
     user_data = await SessionMiddleware.session_check(request)
+    if(user_data == False):
+        response.status_code = 404
+        return response
     
     user_id = user_data.get("_id")
     note_title = input.note_title
