@@ -46,6 +46,7 @@ class LogoutService:
 
         return {"message": "Logout successful"}
 
+    # token 이 none이 나옴
     def google_logout(self, request: Request):
         token = request.cookies.get("access_token")
         if token:
