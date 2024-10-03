@@ -27,10 +27,12 @@ class SessionColl(BaseModel):
     1. 랜덤 생성 유저 id
     2. 유저 소셜로그인 식별자
     3. 세션 유지 시간(ttl)
+    4. 엑세스 토큰
     """
     id: str = Field(default_factory=str, alias="_id")
     identifier: str
     created_at: Union[datetime, str]
+    access_token: Optional[str]
 
 # 사용자 집중 시간 컬렉션   => 이 부분 수정
 class TaskingTime(BaseModel):

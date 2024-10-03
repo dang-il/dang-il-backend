@@ -16,48 +16,75 @@ class LogoutService:
 
     async def logout(self, request: Request, response: Response) -> dict:
         # 쿠키에서 세션 id를 가져옴
+        print("logout1")
+        print(request)
+        print(request.cookies)
         session_id = request.cookies.get("session_id")
+        print("logout2")
         if not session_id:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="No session_id in cookie")
-
+        print("logout3")
         # redis, mongoDB에서 세션 조회
         session_data = await self.session_cache.select(session_id)
+        print(session_data)
         if not session_data:
             session_data = await self.session_coll.select({"_id": session_id})
             if not session_data:
                 raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid session")
 
         user_identifier = session_data.get("identifier")
-        
+        print("logout4", session_data)
         # redis와 mongoDB에서 세션 삭제
         await self.session_cache.delete(session_id)
         await self.session_coll.delete({"_id": session_id})
-
+        print("logout5")
         # 구글 로그아웃 처리
-        if session_data.get("provider") == "google":
-            self.google_logout(request)
-
+        # if session_data.get("provider") == "google":
+        print("logout6")
+        token = session_data.get("access_token")
+        print("ㄴㅇㄹㄴㅇㅁㄹㄴㅇㄴㄹㅇㅁㅁㄴㄹㅇ , ", token )
+        # self.google_logout(token_data)
+        if token:
+            requests.get(f"https://accounts.google.com/o/oauth2/revoke?token={token}")
         # 카카오 로그아웃 처리
-        elif session_data.get("provider") == "kakao":
-            self.kakao_logout(request)
+        # elif session_data.get("provider") == "kakao":
+        print("logout7")
+        # self.kakao_logout(token)
+        headers = {
+            "Authorization": f"Bearer {token}"
+        }
+
+        a = requests.post("https://kapi.kakao.com/v1/user/logout", headers=headers)
+        print("logout8")
 
         # 쿠키 삭제
+        request.cookies.clear()
         response.delete_cookie(key="session_id")
+
+        
+        print("logout9")
 
         return {"message": "Logout successful"}
 
-    def google_logout(self, request: Request):
-        token = request.cookies.get("access_token")
+    def google_logout(self, token):
+        print("token!!!!!!!!!!!!!!!!!!!!google!!!!!!!")
+        print(token)
         if token:
             requests.get(f"https://accounts.google.com/o/oauth2/revoke?token={token}")
+        print("googlelogout1")
 
-    def kakao_logout(self, request: Request):
-        token = request.cookies.get("access_token")
+    def kakao_logout(self, token):
+        print("token!!!!!!kakao!!!!!!!")
+        print(token)
         if token:
+            print("kakaologout1")
             headers = {
                 "Authorization": f"Bearer {token}"
             }
-            requests.post("https://kapi.kakao.com/v1/user/logout", headers=headers)
+
+            a = requests.post("https://kapi.kakao.com/v1/user/logout", headers=headers)
+            print("kakaologout2")
+            print(a.json())
 
 
 def get_logout_service() -> LogoutService:

@@ -35,6 +35,7 @@ class AuthService(AbsService):
     # 구글 로그인 처리(callback)
     @staticmethod
     async def google_callback(input: AuthCallbackInput) -> AuthCallbackOutput:
+        print("구글컬백1")
         async with AsyncClient() as client:
             post_data = {
                 "grant_type": "authorization_code",
@@ -43,25 +44,31 @@ class AuthService(AbsService):
                 "redirect_uri": settings.GOOGLE_REDIRECT_URI,
                 "code": input.code,
             }
+            print("구글컬백2")
             token_response = await client.post(
                 "https://oauth2.googleapis.com/token",
                 data=post_data,
             )
+            print("구글컬백3")
             token_data = token_response.json()
+            print("googlecallback: ", token_data)
+            print("tokendataatata, ", token_data.get("access_token"))
 
             if "error" in token_data:
                 raise HTTPException(status_code=400, detail=token_data["error_description"])
-
+            print("구글컬백4")
             user_response = await client.get(
                 "https://www.googleapis.com/oauth2/v1/userinfo",
                 headers={"Authorization": f"Bearer {token_data['access_token']}"},
             )
-
+        print("구글컬백5")
         user_data = user_response.json()
         user_data["_id"] = user_data.pop("id")
         user_data["profile_image_url"] = user_data.get("picture") 
-
-        return AuthCallbackOutput(**user_data)
+        print("구글컬백6user_Data", user_data)
+        print("access_tolenㅇ ", token_data.get("access_token"))
+        print(type(token_data.get("access_token")))
+        return AuthCallbackOutput(**user_data, access_token=token_data.get("access_token"))
     
     # 카카오 로그인 처리(callback)
     @staticmethod
@@ -100,7 +107,7 @@ class AuthService(AbsService):
         }
         print("checking: ", user_data)
 
-        return AuthCallbackOutput(**user_data)
+        return AuthCallbackOutput(**user_data, access_token=token_data.get("access_token"))
 
     # 사용자 등록 처리
     @staticmethod
@@ -125,12 +132,14 @@ class AuthService(AbsService):
         session_document = SessionColl(
             _id = token_hex(16),
             identifier = input.id,
-            created_at = datetime.datetime.now(datetime.timezone.utc)
+            created_at = datetime.datetime.now(datetime.timezone.utc),
+            access_token=input.access_token
         )
         session_cache_document = SessionColl(
             _id = session_document.id,
             identifier = input.id,
-            created_at = str(session_document.created_at)
+            created_at = str(session_document.created_at),
+            access_token=input.access_token
         )
 
         user_document_dict = user_document.model_dump(by_alias=True, exclude_none=True)
@@ -176,10 +185,12 @@ class AuthService(AbsService):
         input: AuthLoginInput,
         session_coll: MongoDBHandler = get_session_coll(),
         session_cache: RedisHandler = get_session_cache()) -> AuthLoginOutput:
+        print("로그인처리1")
         if input.session_id is not None:
             session_delete_task = create_task(session_coll.delete({"_id": input.session_id}))
             session_cache_delete_task = create_task(session_cache.delete(input.session_id))
             await gather(session_delete_task, session_cache_delete_task)
+        print("로그인처리2")
 
         session_exist_check = create_task(session_coll.select({"identifier": input.id}))
         session_cache_exist_check = create_task(session_cache.select({"identifier": input.id}))
@@ -187,16 +198,18 @@ class AuthService(AbsService):
             session_delete_task = create_task(session_coll.delete({"identifier": input.id}))
             session_cache_delete_task = create_task(session_cache.delete(input.id))
             await gather(session_delete_task, session_cache_delete_task)
-        
+        print("로그인처리3")
         session_document = SessionColl(
             _id = token_hex(16),
             identifier = input.id,
-            created_at = datetime.datetime.now(datetime.timezone.utc)
+            created_at = datetime.datetime.now(datetime.timezone.utc),
+            access_token=input.access_token
         )
         session_cache_document = SessionColl(
             _id = session_document.id,
             identifier = input.id,
-            created_at = str(session_document.created_at)
+            created_at = str(session_document.created_at),
+            access_token=input.access_token
         )
 
         session_document_dict = session_document.model_dump(by_alias=True)
@@ -205,15 +218,16 @@ class AuthService(AbsService):
         session_coll_task = create_task(session_coll.insert(session_document_dict))
         session_cache_task = create_task(session_cache.insert(session_cache_document_dict))
         await gather(session_coll_task, session_cache_task)
-
+        print("로그인처리4")
         session_cache_id = session_document.id
         ttl = int(datetime.timedelta(days=3).total_seconds())
         session_cache_conn = await session_cache.get_redis_conn()
         await session_cache_conn.expire(session_cache_id, ttl)
-
+        print("로그인처리5")
         return AuthLoginOutput(
             session_id = session_document.id,
             expires = (session_document.created_at + datetime.timedelta(days=3)).strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+            profile_image_url=input.profile_image_url
         )
 
 # 의존성 반환

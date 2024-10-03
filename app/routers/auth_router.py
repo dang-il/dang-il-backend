@@ -52,15 +52,17 @@ async def auth_google_callback(post_input: AuthCallbackRequest,
                                user_coll: MongoDBHandler = Depends(get_user_coll)):
     # 쿼리 파라미터에서 인증코드 받기, 없으면 400에러
     code = post_input.code
+    print("라우터1")
     if not code:
         raise HTTPException(status_code=400, detail="Code not found")
-
+    print("라우터2")
     # 인증 코드 기반으로 google에 엑세스 토큰 요청해 사용자 정보 받기
     google_callback_input = AuthCallbackInput(
         code=code
     )
+    print("라우터3")
     user_data: AuthCallbackOutput = await auth_service.google_callback(google_callback_input)
-
+    print("라우터4")
     # 기존에 존재하는 유저이면 로그인, 아니면 회원가입
     existing_user = await user_coll.select({"_id": user_data.id})
     if existing_user == False:
@@ -68,18 +70,26 @@ async def auth_google_callback(post_input: AuthCallbackRequest,
         response_message = "register process is complete"
         response_action_type = "register"
     else:
+        print("라우터5")
         if existing_user.get("profile_image_url") != user_data.profile_image_url:
+            print("라우터6")
             await user_coll.update(
                 {"_id": user_data.id},
                 {"$set": {"profile_image_url": user_data.profile_image_url}}
             )
+            print("라우터6.5")
+        print("라우터7")
         login_input = AuthLoginInput(
             _id=user_data.id,
             name=user_data.name,
             email=user_data.email,
-            session_id=request.cookies.get("session_id")
+            profile_image_url= user_data.profile_image_url,
+            session_id=request.cookies.get("session_id"),
+            access_token=user_data.access_token
         )
+        print("라우터8")
         register_login_result: AuthLoginOutput = await auth_service.login(login_input)
+        print("라우터9")
         response_message = "login process is complete"
         response_action_type = "login"
 
@@ -144,7 +154,9 @@ async def auth_kakao_callback(post_input: AuthCallbackRequest,
             _id=user_data.id,
             name=user_data.name,
             email=user_data.email,
-            session_id=request.cookies.get("session_id")
+            profile_image_url=user_data.profile_image_url,
+            session_id=request.cookies.get("session_id"),
+            access_token=user_data.access_token
         )
         register_login_result: AuthLoginOutput = await auth_service.login(login_input)
         response_message = "login process is complete"
