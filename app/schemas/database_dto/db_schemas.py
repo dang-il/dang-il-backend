@@ -18,7 +18,7 @@ class UserColl(BaseModel):
     name: str
     email: str
     tag: str
-    accessibility: bool = False
+    accessibility: bool = True
     friend_list: Optional[List[str]] = None
 
 # 세션 정보 컬렉션+캐시
@@ -34,12 +34,12 @@ class SessionColl(BaseModel):
 
 # 사용자 집중 시간 컬렉션   => 이 부분 수정
 class TaskingTime(BaseModel):
-    total_time: int
-    task_specific_time: Dict[str, int] # 작업 : 시간 -> 30분, 150분
+    total_time: int = 0
+    task_specific_time: Dict[str, int] = {}# 작업 : 시간 -> 30분, 150분
     
 class UserTaskingTimeColl(BaseModel):
     id: str = Field(default_factory=str, alias="_id")
-    today_tasking_time: int
+    today_tasking_time: int = 0
     previous_tasking_time: Dict[str, int] = {} # 날짜: 그 날 시간
  
 # 친구 추가 요청 대기 컬렉션  ㅌ
@@ -53,8 +53,7 @@ class FriendWaitColl(BaseModel):
 # 개인 공간 정보
 class FurnitureArrange(BaseModel):
     decor_id: str
-    location: Tuple[float, float, float]
-    memo_text: str = ""
+    location: List[float]
 
 class BoardInfo(BaseModel):
     sender_id: str
@@ -74,12 +73,12 @@ class UserSpaceColl(BaseModel):
     7. book_list => 책 이름 리스트 -> [(책제목, 번호)]
     """
     id: str = Field(default_factory=str, alias="_id")
-    interior_data: List[FurnitureArrange]
+    interior_data: List[Union[FurnitureArrange, List]] = []
     memo_list: List[str] = []
     board: Optional[List[BoardInfo]] = None 
     music_url: Optional[List[str]] = None
     light_color: Literal[0, 1, 2, 3] = 0
-    book_list: List[Tuple[str, Literal[0,1,2,3]]] = []
+    book_list: List[List[Union[str, Literal[0,1,2,3]]]] = []
 
 # 장식품 정보 저장 컬렉션
 class DecorColl(BaseModel):
