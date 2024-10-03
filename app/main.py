@@ -42,7 +42,7 @@ app.include_router(friend_router, prefix="/friend", tags=["friend"])
 app.include_router(space_router, prefix="/space", tags=["space"])
 app.include_router(book_router, prefix="/book", tags=["book"])
 app.include_router(youtube_router, prefix="/youtube", tags=["YouTube"])
-app.include_router(user_router, prefix="/users", tags=["user"])
+
 
 @app.get("/")
 async def index():

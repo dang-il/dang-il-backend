@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Union, Tuple, List, Optional, Dict, Literal
+from app.schemas.database_dto.db_schemas import FurnitureArrange
 
 class GetUserSpaceInput(BaseModel):
     id: str
@@ -10,17 +11,12 @@ class GetUserSpaceOutput(BaseModel):
     user_space_data: Optional[Union[dict, bool]] = None
     user_tasking_time_data: Optional[Union[dict, bool]] = None
 
-#
-class FurnitureArrange(BaseModel):
-    decor_id: str
-    location: Tuple[float, float, float]    
-
 class SaveInteriorDataInput(BaseModel):
     id: str
-    updated_location_data: List[FurnitureArrange]
+    updated_location_data: List[Optional[FurnitureArrange]]
 
 class SaveInteriorDataOutput(BaseModel):
-    user_space_data: dict
+    user_space_data: List[dict]
 
 class DeleteInteriorDataInput(BaseModel):
     id: str

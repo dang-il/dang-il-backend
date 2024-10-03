@@ -16,6 +16,7 @@ class LogoutService:
 
     async def logout(self, request: Request, response: Response) -> AuthLogoutResponse:
         # 쿠키에서 세션 ID를 가져옴
+        print(f"session_cache 타입: {type(self.session_cache)}")
         session_id = request.cookies.get("session_id")
         if not session_id:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session ID not found")
@@ -59,7 +60,6 @@ class LogoutService:
                 "Authorization": f"Bearer {token}"
             }
             requests.post("https://kapi.kakao.com/v1/user/logout", headers=headers)
-
 
 # 의존성 주입 함수
 def get_logout_service() -> LogoutService:

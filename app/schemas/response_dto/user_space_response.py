@@ -7,7 +7,7 @@ class GetSpaceResponse(BaseModel):
 
 class SaveSpaceResponse(BaseModel):
     message: str
-    updated_data: dict
+    updated_data: List
 
 class DeleteSpaceResponse(BaseModel):
     message: str

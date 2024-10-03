@@ -155,7 +155,7 @@ async def auth_kakao_callback(post_input: AuthCallbackRequest,
         "key": "session_id",
         "value": register_login_result.session_id,
         "expires": register_login_result.expires,
-        "httponly": False,  # HttpOnly 플래그 제거
+        "httponly": False,
         "secure": True,
         "samesite": 'None',
     }
@@ -169,8 +169,7 @@ async def auth_kakao_callback(post_input: AuthCallbackRequest,
         profile_image_url=user_data.profile_image_url
     )
 
-#로그아웃
+# 로그아웃
 @router.post("/logout", response_model=AuthLogoutResponse, **(AuthSpec.auth_logout()))
 async def auth_logout(request: Request, response: Response):
     return await LogoutService.logout(request, response)
-
