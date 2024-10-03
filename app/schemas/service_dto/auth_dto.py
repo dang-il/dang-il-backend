@@ -9,6 +9,7 @@ class AuthCallbackOutput(BaseModel):
     name: str
     email: str
     profile_image_url: str
+    access_token: str
     
 class AuthRegisterInput(AuthCallbackOutput):
     pass
@@ -20,6 +21,7 @@ class AuthRegisterOutput(BaseModel):
     
 class AuthLoginInput(AuthCallbackOutput):
     session_id: Optional[str] = None
-    
+
+
 class AuthLoginOutput(AuthRegisterOutput):
     pass

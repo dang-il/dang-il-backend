@@ -27,10 +27,12 @@ class SessionColl(BaseModel):
     1. 랜덤 생성 유저 id
     2. 유저 소셜로그인 식별자
     3. 세션 유지 시간(ttl)
+    4. 엑세스 토큰
     """
     id: str = Field(default_factory=str, alias="_id")
     identifier: str
     created_at: Union[datetime, str]
+    access_token: Optional[str]
 
 # 사용자 집중 시간 컬렉션   => 이 부분 수정
 class TaskingTime(BaseModel):
@@ -74,7 +76,7 @@ class UserSpaceColl(BaseModel):
     """
     id: str = Field(default_factory=str, alias="_id")
     interior_data: List[Union[FurnitureArrange, List]] = []
-    memo_list: List[str] = []
+    memo_list: List[List[Union[str, List[int]]]] = []
     board: Optional[List[BoardInfo]] = None 
     music_url: Optional[List[str]] = None
     light_color: Literal[0, 1, 2, 3] = 0

@@ -186,6 +186,7 @@ async def delete_space_board(request: Request,
              description="""
                 메모에 적을 내용을 memo_content에 적어서 넣기 <br><br>
                 변경된 memo_list를 응답 <br><br>
+                position은 int 리스트 <br><br>
                 검증 위한 세션 id 필수
             """)
 async def create_space_board(request: Request,
@@ -198,7 +199,8 @@ async def create_space_board(request: Request,
 
     memo_input = CreateMemoInput(
         user_id=user_id,
-        memo_content=memo_content
+        memo_content=memo_content,
+        position=input.position
     )
     memo_output: CreateMemoOutput = await user_space_service.create_memo(memo_input)
 
@@ -210,6 +212,7 @@ async def create_space_board(request: Request,
                 수정할 메모의 idx(배열 인덱스)를 memo_idx에 넣기 <br><br>
                 메모에 적을 내용을 memo_content에 적어서 넣기 <br><br>
                 변경된 memo_list를 응답 <br><br>
+                position은 int 리스트 <br><br>
                 검증 위한 세션 id 필수
             """)
 async def update_space_board(request: Request,
