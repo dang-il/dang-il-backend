@@ -48,6 +48,11 @@ from app.schemas.response_dto.user_space_response import (
 )
 # 기타 사용자 모듈
 from app.api_spec.user_space_spec import UserSpaceSpec
+from app.schemas.service_dto.etc.sse_dto import (
+    InsertSSEQueueInput,
+)
+from app.services.etc.sse_connection_service import SSEConnectionService, get_sse_connection_service
+
 
 router = APIRouter()
 
@@ -129,12 +134,14 @@ async def get_space_board(path_user_id,
         board_data=board_data
     )
 
-# 친구, 모르는 유저 공간 게시판에 메모 남기기 -> 세션 필요, path_user_id는 게시판 주인 유저
+# 친구, 모르는 유저 공간 게시판에 방명록 남기기 -> 세션 필요, 
+# path_user_id는 게시판 주인 유저
 @router.post("/board/{path_user_id}")#, **(UserSpaceSpec.space_board_write()))
 async def post_space_board(request: Request,
                            path_user_id,
                            post_input: PostBoardRequest,
-                           user_space_service: UserSpaceService = Depends(get_user_space_service)):
+                           user_space_service: UserSpaceService = Depends(get_user_space_service),
+                           sse_connection_service: SSEConnectionService = Depends(get_sse_connection_service)):
     user_data = await SessionMiddleware.session_check(request)
     user_id = user_data.get("_id")
     user_name = user_data.get("name")
@@ -145,6 +152,21 @@ async def post_space_board(request: Request,
                                         memo=post_input.memo.get("content")
                                     )
     post_board_output: PostBoardOutput = await user_space_service.post_board(post_board_input)
+
+    # 친구 요청 큐에 값 삽입
+    queue_message = {
+        "source": request.url.path,
+        "data": {
+            "sender_id": user_id,
+            "memo": post_input.memo.get("content")
+        }
+    }
+    insert_queue_input = InsertSSEQueueInput(
+        user_id=path_user_id, # 받는 사람
+        insert_data=queue_message
+    )
+    await sse_connection_service.insert_sse_queue(insert_queue_input)
+    
 
     return PostBoardResponse(board_data=post_board_output.memo_data)
 
