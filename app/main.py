@@ -15,12 +15,7 @@ from routers.etc.sse_connection_router import router as sse_router
 from routers.friend_router import router as friend_router
 from routers.user_space_router import router as space_router
 from app.routers.youtube_router import router as youtube_router
-<<<<<<< HEAD
-from app.routers.user_updatename_routers import router as user_router
-from app.routers.tasking_note_router import router as book_router
-=======
 from routers.tasking_note_router import router as book_router
->>>>>>> ksw
 
 app = FastAPI(
     title="예술적인 소프트웨어 dangil api 문서",
@@ -45,10 +40,6 @@ app.include_router(guestmode_router, prefix="/guestmode", tags=["guestmode"])
 app.include_router(sse_router, prefix="/sse", tags=["sse"])
 app.include_router(friend_router, prefix="/friend", tags=["friend"])
 app.include_router(space_router, prefix="/space", tags=["space"])
-<<<<<<< HEAD
-app.include_router(user_router, prefix="/user", tags=["User"])
-=======
->>>>>>> ksw
 app.include_router(book_router, prefix="/book", tags=["book"])
 app.include_router(youtube_router, prefix="/youtube", tags=["YouTube"])
 
