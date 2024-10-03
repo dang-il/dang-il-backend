@@ -85,9 +85,11 @@ class UserSpaceService(AbsService):
                                  user_space_coll: MongoDBHandler = get_user_space_coll()) -> SaveInteriorDataOutput:
         user_id = input.id
         updated_data = input.updated_location_data
-
-        update_result = await user_space_coll.update({"_id": user_id}, {'$set': updated_data})
+        for idx in range(len(updated_data)):
+            updated_data[idx] = updated_data[idx].model_dump(by_alias=True, exclude_none=True)
+        update_result = await user_space_coll.update({"_id": str(user_id)}, {'$set': {"interior_data": updated_data}})
         
+
         if(update_result == False):
             raise HTTPException(status_code=400)
         
@@ -163,13 +165,13 @@ class UserSpaceService(AbsService):
 
         await user_space_coll.update(
             {"_id": receiver_id},
-            {"$push": {"board": memo.dict()}}
+            {"$push": {"board": memo}}
         )
 
-        memo_data = await user_space_coll.select(
+        memo_data = (await user_space_coll.select(
             {"_id": receiver_id},
             {"board":1}
-        )
+        )).get("board")
 
         return PostBoardOutput(memo_data = memo_data)
     

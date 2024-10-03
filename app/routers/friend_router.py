@@ -45,9 +45,6 @@ async def post_friend_apply(request: Request,
     user_name = user_data.get("name")
 
     # 검증 -> 쿠키의 id와 입력 sender_id가 다르면 기각
-    print("하이이ㅣ이이잉")
-    print(sender_id)
-    print(user_data.get("_id"))
     if(sender_id != user_data.get("_id")):
         return JSONResponse(content={}, status_code=400)
     
