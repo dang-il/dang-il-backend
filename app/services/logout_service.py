@@ -1,5 +1,3 @@
-# logout_service.py
-
 from fastapi import Depends, HTTPException, status, Request, Response
 from app.deps import get_user_coll, get_session_cache, get_session_coll
 from app.utils.db_handlers.redis_handler import RedisHandler

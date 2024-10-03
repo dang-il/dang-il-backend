@@ -171,5 +171,6 @@ async def auth_kakao_callback(post_input: AuthCallbackRequest,
 
 #로그아웃
 @router.post("/logout", response_model=AuthLogoutResponse, **(AuthSpec.auth_logout()))
-async def auth_logout(request: Request, response: Response, auth_service: AuthService = Depends(get_auth_service)):
-    return await auth_service.logout(request, response)
+async def auth_logout(request: Request, response: Response):
+    return await LogoutService.logout(request, response)
+
