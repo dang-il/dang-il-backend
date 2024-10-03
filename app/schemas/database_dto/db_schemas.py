@@ -76,7 +76,7 @@ class UserSpaceColl(BaseModel):
     """
     id: str = Field(default_factory=str, alias="_id")
     interior_data: List[Union[FurnitureArrange, List]] = []
-    memo_list: List[str] = []
+    memo_list: List[List[Union[str, List[int]]]] = []
     board: Optional[List[BoardInfo]] = None 
     music_url: Optional[List[str]] = None
     light_color: Literal[0, 1, 2, 3] = 0

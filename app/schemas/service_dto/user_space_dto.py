@@ -67,14 +67,17 @@ class DeleteBoardOutput(BaseModel):
 class CreateMemoInput(BaseModel):
     user_id: str
     memo_content: str
+    position: List[str]
 
 class CreateMemoOutput(BaseModel):
     memo_list : List[str]
+    position: List[str]
 
 class UpdateMemoInput(BaseModel):
     user_id: str
     memo_idx: int
     memo_content: str
+    position: List[str]
 
 class UpdateMemoOutput(BaseModel):
     memo_list: List[str]

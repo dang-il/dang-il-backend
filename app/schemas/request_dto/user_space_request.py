@@ -23,10 +23,12 @@ class PostBoardRequest(BaseModel):
 
 class CreateMemoReq(BaseModel):
     memo_content: str
+    position: List[str]
 
 class UpdateMemoReq(BaseModel):
     memo_idx: int
     memo_content: str
+    position: List[str]
 
 class DeleteMemoReq(BaseModel):
     memo_idx: int

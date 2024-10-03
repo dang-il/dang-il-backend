@@ -190,11 +190,11 @@ class UserSpaceService(AbsService):
     async def create_memo(input: CreateMemoInput,
                           user_space_coll: MongoDBHandler = get_user_space_coll())->CreateMemoOutput:
         user_id = input.user_id
-        memo_content = input.memo_content
+        memo_list_elem = [input.memo_content, input.position]
 
         await user_space_coll.update(
             {"_id": user_id},
-            {"$push": {"memo_list": memo_content}}
+            {"$push": {"memo_list": memo_list_elem}}
         )
 
         memo_list = (await user_space_coll.select({"_id": user_id}, {"memo_list": 1})).get("memo_list")
@@ -210,7 +210,7 @@ class UserSpaceService(AbsService):
                           user_space_coll: MongoDBHandler = get_user_space_coll()) -> UpdateMemoOutput: 
         user_id = input.user_id
         memo_idx = input.memo_idx
-        memo_content = input.memo_content
+        memo_content = [input.memo_content, input.position]
 
         update_count = await user_space_coll.update(
             {"_id": user_id},

@@ -177,7 +177,8 @@ class AuthService(AbsService):
         return AuthRegisterOutput(
             session_id = session_document.id,
             expires = (session_document.created_at + datetime.timedelta(days=3)).strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
-        )
+            profile_image_url=input.profile_image_url
+        )   
     
     # 로그인 처리
     @staticmethod

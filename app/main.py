@@ -26,7 +26,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:8000"],  # 모든 출처를 허용합니다.
+    allow_origins=["http://localhost:3000", "http://localhost:8000", "https://localhost:3000", "https://localhost:8000"],  # 모든 출처를 허용합니다.
     allow_credentials=True,  # 쿠키를 포함한 요청을 허용합니다.
     allow_methods=["*"],  # 모든 HTTP 메소드를 허용합니다. 예: GET, POST, PUT, DELETE, PATCH 등
     allow_headers=["*"],  # 모든 헤더를 허용합니다.

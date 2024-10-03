@@ -43,19 +43,16 @@ class LogoutService:
         print("logout6")
         token = session_data.get("access_token")
         print("ㄴㅇㄹㄴㅇㅁㄹㄴㅇㄴㄹㅇㅁㅁㄴㄹㅇ , ", token )
-        # self.google_logout(token_data)
-        if token:
-            requests.get(f"https://accounts.google.com/o/oauth2/revoke?token={token}")
+        self.google_logout(token)
+        # if token:
+        #     requests.get(f"https://accounts.google.com/o/oauth2/revoke?token={token}")
         # 카카오 로그아웃 처리
         # elif session_data.get("provider") == "kakao":
         print("logout7")
-        # self.kakao_logout(token)
-        headers = {
-            "Authorization": f"Bearer {token}"
-        }
-
-        a = requests.post("https://kapi.kakao.com/v1/user/logout", headers=headers)
-        print("logout8")
+        self.kakao_logout(token)
+        # headers = {
+        #     "Authorization": f"Bearer {token}"
+        # }
 
         # 쿠키 삭제
         request.cookies.clear()
@@ -81,10 +78,11 @@ class LogoutService:
             headers = {
                 "Authorization": f"Bearer {token}"
             }
-
-            a = requests.post("https://kapi.kakao.com/v1/user/logout", headers=headers)
+            # 원래 뭐더라
+            a = requests.get("https://kapi.kakao.com/v1/user/logout", headers=headers)
             print("kakaologout2")
             print(a.json())
+            print(a.status_code)
 
 
 def get_logout_service() -> LogoutService:
